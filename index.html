@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whiteboard</title>
+
+    <script src="Whiteboard.js"></script>
+    <script src="index.js"></script>
+</head>
+
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+    }
+
+    canvas {
+        height: 820px;
+        width: 1440px;
+    }
+
+    canvas:focus {
+        border-color: blue;
+    }
+</style>
+
+<body style="margin: 0;" onload="main()">
+    <canvas id="canvas" tabindex="1"></canvas>
+    <button onclick="Save()">Save</button>
+</body>
+</html>
