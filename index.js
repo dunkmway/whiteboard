@@ -5,8 +5,7 @@ function main() {
 }
 
 function save() {
-    console.log(JSON.stringify(whiteboard.toObject()));
-    console.log(whiteboard.toObject())
+    document.getElementById('load').value = JSON.stringify(whiteboard.toObject());
 }
 
 function load() {

@@ -15,10 +15,15 @@
 */
 
 const DEBUG_MODE = false;
+const isDarkMode = true;
 
-const SELECTED_COLOR = "green";
-const BOUNDING_BOX_COLOR = "red";
-const BACKGROUND_COLOR = "white";
+const SELECTED_COLOR = "#00ff00";
+const BOUNDING_BOX_COLOR = "#ff0000";
+const BACKGROUND_COLOR = isDarkMode ? "#000000" : "#ffffff";
+const FILL_COLOR = isDarkMode ? "#ffffff" : "#000000";
+const STROKE_STYLE = isDarkMode ? "#ffffff" : "#000000";
+
+
 
 class CanvasMode {
     static Select = new CanvasMode('Select');
@@ -55,8 +60,8 @@ class Whiteboard {
         this.mode = CanvasMode.Select;
         
         this.currentObject = null;
-        this.fillStyle = 'black';
-        this.strokeStyle = 'black';
+        this.fillStyle = FILL_COLOR;
+        this.strokeStyle = STROKE_STYLE;
         this.lineWidth = 5;
         this.lineCap = 'butt';      // butt, round, square
         this.lineJoin = 'miter';    // miter, round, bevel
@@ -72,7 +77,7 @@ class Whiteboard {
         canvas.addEventListener('keydown', (event) => this.handleKeyDown(event));
 
         this.toolbar.style = `
-            position: fixed;
+            position: absolute;
             top: 20px;
             left: 20px;
         `;
@@ -90,6 +95,7 @@ class Whiteboard {
         const widthInput = document.createElement('input');
 
         this.modeText.textContent = this.mode.name;
+        this.modeText.style.color = this.strokeStyle;
         selectButton.textContent = 'Select';
         penButton.textContent = 'Pen';
         lineButton.textContent = 'Line';
@@ -99,9 +105,11 @@ class Whiteboard {
         ringButton.textContent = 'Ring';
         eraseButton.textContent = 'Erase';
         strokeColorPicker.type = 'color';
+        strokeColorPicker.value = this.strokeStyle;
         fillColorPicker.type = 'color';
+        fillColorPicker.value = this.fillStyle;
         widthInput.type = 'number';
-        widthInput.value = '5';
+        widthInput.value = this.lineWidth.toString();
 
         selectButton.addEventListener('click', () => this.setMode(CanvasMode.Select));
         penButton.addEventListener('click', () => this.setMode(CanvasMode.Pen));
@@ -559,6 +567,7 @@ class Whiteboard {
             // manually draw in the box
             this.context.beginPath();
             this.context.strokeStyle = SELECTED_COLOR;
+            this.context.lineWidth = 5;
             this.context.setLineDash([4,2]);
             this.context.rect(this.currentObject.startPoint.x, this.currentObject.startPoint.y, this.currentObject.getWidth(), this.currentObject.getHeight());
             this.context.stroke();
@@ -774,6 +783,7 @@ class WhiteboardObject {
 
     drawBoundingBox(context) {
         context.strokeStyle = BOUNDING_BOX_COLOR;
+        context.lineWidth = 5;
         context.beginPath();
         context.rect(this.boundingBox.startPoint.x, this.boundingBox.startPoint.y, this.boundingBox.getWidth(), this.boundingBox.getHeight());
         context.stroke();
@@ -781,6 +791,7 @@ class WhiteboardObject {
 
     drawSelected(context) {
         context.strokeStyle = SELECTED_COLOR;
+        context.lineWidth = 5;
         context.beginPath();
         context.rect(this.boundingBox.startPoint.x, this.boundingBox.startPoint.y, this.boundingBox.getWidth(), this.boundingBox.getHeight());
         context.stroke();
