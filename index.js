@@ -5,5 +5,11 @@ function main() {
 }
 
 function save() {
-    console.log(JSON.parse(JSON.stringify(whiteboard.toObject())));
+    console.log(JSON.stringify(whiteboard.toObject()));
+    console.log(whiteboard.toObject())
+}
+
+function load() {
+    const data = JSON.parse(document.getElementById('load').value);
+    whiteboard.load(data);
 }

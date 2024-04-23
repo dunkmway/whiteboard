@@ -71,8 +71,6 @@ class Whiteboard {
         canvas.addEventListener('mousemove', (event) => this.handleMouseMove(event));
         canvas.addEventListener('keydown', (event) => this.handleKeyDown(event));
 
-
-
         this.toolbar.style = `
             position: fixed;
             top: 20px;
@@ -81,6 +79,7 @@ class Whiteboard {
         this.modeText = document.createElement('span');
         const selectButton = document.createElement('button');
         const penButton = document.createElement('button');
+        const lineButton = document.createElement('button');
         const rectangleButton = document.createElement('button');
         const boxButton = document.createElement('button');
         const circleButton = document.createElement('button');
@@ -93,6 +92,7 @@ class Whiteboard {
         this.modeText.textContent = this.mode.name;
         selectButton.textContent = 'Select';
         penButton.textContent = 'Pen';
+        lineButton.textContent = 'Line';
         rectangleButton.textContent = 'Rectangle';
         boxButton.textContent = 'Box';
         circleButton.textContent = 'Circle';
@@ -105,6 +105,7 @@ class Whiteboard {
 
         selectButton.addEventListener('click', () => this.setMode(CanvasMode.Select));
         penButton.addEventListener('click', () => this.setMode(CanvasMode.Pen));
+        lineButton.addEventListener('click', () => this.setMode(CanvasMode.Line));
         rectangleButton.addEventListener('click', () => this.setMode(CanvasMode.Rectangle));
         boxButton.addEventListener('click', () => this.setMode(CanvasMode.Box));
         circleButton.addEventListener('click', () => this.setMode(CanvasMode.Circle));
@@ -117,6 +118,7 @@ class Whiteboard {
         this.toolbar.appendChild(this.modeText);
         this.toolbar.appendChild(selectButton);
         this.toolbar.appendChild(penButton);
+        this.toolbar.appendChild(lineButton);
         this.toolbar.appendChild(rectangleButton);
         this.toolbar.appendChild(boxButton);
         this.toolbar.appendChild(circleButton);
@@ -137,7 +139,35 @@ class Whiteboard {
 
     static fromObject(object, canvas) {
         const whiteboard = new Whiteboard(canvas);
-        whiteboard.elements = new Map(Object.entries(object));
+        whiteboard.load(object);
+        return whiteboard;
+    }
+
+    load(object) {
+        for (const elementID in object) {
+            const current = object[elementID];
+            switch (current.type) {
+                case 'path':
+                    this.add(new Path(current));
+                    break;
+                case 'line':
+                    this.add(new Line(current));
+                    break;
+                case 'rectangle':
+                    this.add(new Rectangle(current));
+                    break;
+                case 'box':
+                    this.add(new Box(current));
+                    break;
+                case 'circle':
+                    this.add(new Circle(current));
+                    break;
+                case 'ring':
+                    this.add(new Ring(current));
+                    break;
+                default:
+            }
+        }
     }
 
     setMode(mode) {
@@ -698,6 +728,13 @@ class BoundingBox {
 
 class WhiteboardObject {
     constructor(options) {
+        // ensure the option is set with the class and not just attributes
+        if (options.origin) {
+            options.origin = new Point(options.origin.x, options.origin.y);
+        }
+        if (options.boundingBox) {
+            options.boundingBox = new BoundingBox(options.boundingBox.startPoint.x, options.boundingBox.startPoint.y, options.boundingBox.endPoint.x, options.boundingBox.endPoint.y);
+        }
         const defaults = {
             origin: new Point(0, 0),
             fill: '#000000',
@@ -790,6 +827,10 @@ class Line extends WhiteboardObject {
     constructor(options) {
         super(options);
 
+        // ensure the option is set with the class and not just attributes
+        if (options.endPoint) {
+            options.endPoint = new Point(options.endPoint.x, options.endPoint.y);
+        }
         const defaults = {
             endPoint: new Point(0, 0),
             type: 'line'
@@ -867,6 +908,9 @@ class Path extends WhiteboardObject {
     constructor(options) {
         super(options);
 
+        if (options.segments) {
+            options.segments = options.segments.map(segment => new Line(segment));
+        }
         const defaults = {
             type: 'path',
             segments: [],
