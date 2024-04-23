@@ -4,6 +4,6 @@ function main() {
     whiteboard = new Whiteboard(document.querySelector('#canvas'));
 }
 
-function Save() {
+function save() {
     console.log(JSON.parse(JSON.stringify(whiteboard.toObject())));
 }

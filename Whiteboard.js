@@ -18,18 +18,22 @@ const DEBUG_MODE = false;
 
 const SELECTED_COLOR = "green";
 const BOUNDING_BOX_COLOR = "red";
+const BACKGROUND_COLOR = "white";
 
-const SELECT_MODE = 0;
-const PEN_MODE = 1;
-const ERASE_MODE = 2;
+class CanvasMode {
+    static Select = new CanvasMode('Select');
+    static Pen = new CanvasMode('Pen');
+    static Erase = new CanvasMode('Erase');
+    static Line = new CanvasMode('Line');
+    static Rectangle = new CanvasMode('Rectangle');
+    static Circle = new CanvasMode('Circle');
+    static Box = new CanvasMode('Box');
+    static Ring = new CanvasMode('Ring');
 
-const LINE_MODE = 101;
-const RECTANGLE_MODE = 102;
-const CIRCLE_MODE = 103;
-const BOX_MODE = 104;
-const RING_MODE = 105;
-
-const DEFAULT_MODE = SELECT_MODE;
+    constructor(name) {
+        this.name = name;
+    }
+}
 
 class Whiteboard {
     constructor(canvas) {
@@ -47,9 +51,9 @@ class Whiteboard {
         this.isMouseDown = false;
         this.mouseCurrentPosition = new Point(0, 0);
         this.mousePreviousPosition = new Point(0, 0);
-
-        this.mode = DEFAULT_MODE;
-
+        
+        this.mode = CanvasMode.Select;
+        
         this.currentObject = null;
         this.fillStyle = 'black';
         this.strokeStyle = 'black';
@@ -57,11 +61,11 @@ class Whiteboard {
         this.lineCap = 'butt';      // butt, round, square
         this.lineJoin = 'miter';    // miter, round, bevel
         this.lineDash = [];
-
-
+        
+        
         canvas.width = this.width;
         canvas.height = this.height;
-
+        
         canvas.addEventListener('mousedown', (event) => this.handleMouseDown(event));
         canvas.addEventListener('mouseup', (event) => this.handleMouseUp(event));
         canvas.addEventListener('mousemove', (event) => this.handleMouseMove(event));
@@ -74,6 +78,7 @@ class Whiteboard {
             top: 20px;
             left: 20px;
         `;
+        this.modeText = document.createElement('span');
         const selectButton = document.createElement('button');
         const penButton = document.createElement('button');
         const rectangleButton = document.createElement('button');
@@ -85,6 +90,7 @@ class Whiteboard {
         const fillColorPicker = document.createElement('input');
         const widthInput = document.createElement('input');
 
+        this.modeText.textContent = this.mode.name;
         selectButton.textContent = 'Select';
         penButton.textContent = 'Pen';
         rectangleButton.textContent = 'Rectangle';
@@ -97,17 +103,18 @@ class Whiteboard {
         widthInput.type = 'number';
         widthInput.value = '5';
 
-        selectButton.addEventListener('click', () => this.mode = SELECT_MODE);
-        penButton.addEventListener('click', () => this.mode = PEN_MODE);
-        rectangleButton.addEventListener('click', () => this.mode = RECTANGLE_MODE);
-        boxButton.addEventListener('click', () => this.mode = BOX_MODE);
-        circleButton.addEventListener('click', () => this.mode = CIRCLE_MODE);
-        ringButton.addEventListener('click', () => this.mode = RING_MODE);
-        eraseButton.addEventListener('click', () => this.mode = ERASE_MODE);
+        selectButton.addEventListener('click', () => this.setMode(CanvasMode.Select));
+        penButton.addEventListener('click', () => this.setMode(CanvasMode.Pen));
+        rectangleButton.addEventListener('click', () => this.setMode(CanvasMode.Rectangle));
+        boxButton.addEventListener('click', () => this.setMode(CanvasMode.Box));
+        circleButton.addEventListener('click', () => this.setMode(CanvasMode.Circle));
+        ringButton.addEventListener('click', () => this.setMode(CanvasMode.Ring));
+        eraseButton.addEventListener('click', () => this.setMode(CanvasMode.Erase));
         strokeColorPicker.addEventListener('change', () => this.strokeStyle = strokeColorPicker.value);
         fillColorPicker.addEventListener('change', () => this.fillStyle = fillColorPicker.value);
         widthInput.addEventListener('change', () => this.lineWidth = parseInt(widthInput.value));
         
+        this.toolbar.appendChild(this.modeText);
         this.toolbar.appendChild(selectButton);
         this.toolbar.appendChild(penButton);
         this.toolbar.appendChild(rectangleButton);
@@ -121,6 +128,7 @@ class Whiteboard {
 
         document.body.appendChild(this.toolbar);
 
+        this.redraw();
     }
 
     toObject() {
@@ -130,6 +138,13 @@ class Whiteboard {
     static fromObject(object, canvas) {
         const whiteboard = new Whiteboard(canvas);
         whiteboard.elements = new Map(Object.entries(object));
+    }
+
+    setMode(mode) {
+        this.mode = mode;
+        
+        // rerender the current mode
+        this.modeText.textContent = this.mode.name;
     }
 
     getMousePosition(event) {
@@ -167,6 +182,9 @@ class Whiteboard {
 
         // clear the entire canvas
         this.context.clearRect(0, 0, this.width, this.height);
+        // set the whiteboard background color
+        this.context.fillStyle = BACKGROUND_COLOR;
+        this.context.fillRect(0, 0, canvas.width, canvas.height);
 
         // redraw all of the elements
         this.elements.forEach(element => {
@@ -186,10 +204,10 @@ class Whiteboard {
 
     handleMouseDown(e) {
         switch (this.mode) {
-            case SELECT_MODE:
+            case CanvasMode.Select:
                 this.selectDown(e);
                 break
-            case PEN_MODE:
+            case CanvasMode.Pen:
                 this.objectDown(e, new Path({
                     origin: this.getMousePosition(e),
                     fill: this.fillStyle,
@@ -200,7 +218,7 @@ class Whiteboard {
                     lineDash: [],
                 }));
                 break;
-            case LINE_MODE:
+            case CanvasMode.Line:
                 this.objectDown(e, new Line({
                     origin: this.getMousePosition(e),
                     fill: this.fillStyle,
@@ -211,7 +229,7 @@ class Whiteboard {
                     lineDash: [],
                 }))
                 break;
-            case RECTANGLE_MODE:
+            case CanvasMode.Rectangle:
                 this.objectDown(e, new Rectangle({
                     origin: this.getMousePosition(e),
                     fill: this.fillStyle,
@@ -222,7 +240,7 @@ class Whiteboard {
                     lineDash: [],
                 }))
                 break;
-            case BOX_MODE:
+            case CanvasMode.Box:
                 this.objectDown(e, new Box({
                     origin: this.getMousePosition(e),
                     fill: this.fillStyle,
@@ -233,7 +251,7 @@ class Whiteboard {
                     lineDash: [],
                 }))
                 break;
-            case CIRCLE_MODE:
+            case CanvasMode.Circle:
                 this.objectDown(e, new Circle({
                     origin: this.getMousePosition(e),
                     fill: this.fillStyle,
@@ -244,7 +262,7 @@ class Whiteboard {
                     lineDash: [],
                 }))
                 break;
-            case RING_MODE:
+            case CanvasMode.Ring:
                 this.objectDown(e, new Ring({
                     origin: this.getMousePosition(e),
                     fill: this.fillStyle,
@@ -255,7 +273,7 @@ class Whiteboard {
                     lineDash: [],
                 }))
                 break;
-            case ERASE_MODE:
+            case CanvasMode.Erase:
                 this.eraserDown();
                 break;
             default:
@@ -264,18 +282,18 @@ class Whiteboard {
 
     handleMouseUp(e) {
         switch (this.mode) {
-            case SELECT_MODE:
+            case CanvasMode.Select:
                 this.selectUp();
                 break
-            case PEN_MODE:
-            case LINE_MODE:
-            case BOX_MODE:
-            case RECTANGLE_MODE:
-            case CIRCLE_MODE:
-            case RING_MODE:
+            case CanvasMode.Pen:
+            case CanvasMode.Line:
+            case CanvasMode.Box:
+            case CanvasMode.Rectangle:
+            case CanvasMode.Circle:
+            case CanvasMode.Ring:
                 this.objectUp();
                 break;
-            case ERASE_MODE:
+            case CanvasMode.Erase:
                 this.eraserUp();
                 break;
             default:
@@ -284,28 +302,28 @@ class Whiteboard {
 
     handleMouseMove(e) {
         switch (this.mode) {
-            case SELECT_MODE:
+            case CanvasMode.Select:
                 this.selectMove(e);
                 break
-            case PEN_MODE:
+            case CanvasMode.Pen:
                 this.pathMove(e);
                 break;
-            case LINE_MODE:
+            case CanvasMode.Line:
                 this.lineMove(e);
                 break; 
-            case RECTANGLE_MODE:
+            case CanvasMode.Rectangle:
                 this.rectangleMove(e);
                 break;
-            case BOX_MODE:
+            case CanvasMode.Box:
                 this.boxMove(e);
                 break;
-            case CIRCLE_MODE:
+            case CanvasMode.Circle:
                 this.circleMove(e);
                 break;
-            case RING_MODE:
+            case CanvasMode.Ring:
                 this.ringMove(e);
                 break;
-            case ERASE_MODE:
+            case CanvasMode.Erase:
                 this.eraserMove(e);
                 break;
             default:
@@ -315,39 +333,32 @@ class Whiteboard {
     handleKeyDown(e) {
         switch (e.key) {
             case 's':
-                console.log('SELECT_MODE')
-                this.mode = SELECT_MODE;
+                this.setMode(CanvasMode.Select);
                 break;
             case 'p':
-                console.log('PEN_MODE')
-                this.mode = PEN_MODE;
+                this.setMode(CanvasMode.Pen);
                 break;
             case 'e':
-                console.log('ERASE_MODE')
-                this.mode = ERASE_MODE;
+                this.setMode(CanvasMode.Erase);
                 break;
             case 'l':
-                console.log('LINE_MODE')
-                this.mode = LINE_MODE;
+                this.setMode(CanvasMode.Line);
                 break;
             case 'R':
-                console.log('RECTANGLE_MODE')
-                this.mode = RECTANGLE_MODE;
+                this.setMode(CanvasMode.Rectangle);
                 break;
             case 'C':
-                console.log('CIRCLE_MODE')
-                this.mode = CIRCLE_MODE;
+                this.setMode(CanvasMode.Circle);
                 break;
             case 'b':
-                console.log('BOX_MODE')
-                this.mode = BOX_MODE;
+                this.setMode(CanvasMode.Box);
                 break;
             case 'r':
-                console.log('RING_MODE')
-                this.mode = RING_MODE;
+                this.setMode(CanvasMode.Ring);
                 break;
             case 'Delete':
-                if (this.mode == SELECT_MODE) {
+            case 'Backspace':
+                if (this.mode == CanvasMode.Select) {
                     this.elements.forEach(element => {
                         if (element.selected) {
                             this.elements.delete(element.id);
@@ -543,18 +554,13 @@ class Whiteboard {
 
             // check if intersects with any elements
             // first check bounding box to narrow the search
-            let boundingIntersections = [];
             this.elements.forEach(element => {
                 if (element.lineIsInBoundingBox(eraserLine)) {
-                    boundingIntersections.push(element);
-                }
-            })
-
-            // now check only the bounding intersection for their more complex intersection function
-            boundingIntersections.forEach(element => {
-                if (element.isLineIntersecting(eraserLine)) {
-                    this.elements.delete(element.id);
-                    this.redraw()
+                    // now check only the bounding intersection for their more complex intersection function
+                    if (element.isLineIntersecting(eraserLine)) {
+                        this.elements.delete(element.id);
+                        this.redraw()
+                    }
                 }
             })
         }
@@ -703,7 +709,7 @@ class WhiteboardObject {
             type: 'element',
             id: crypto.randomUUID(),
             boundingBox: new BoundingBox(0, 0, 0, 0),
-            showBoundingBox: DEBUG_MODE,
+            showBoundingBox: DEBUG_MODE ?? false,
             selected: false
         }
 
