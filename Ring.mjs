@@ -1,5 +1,6 @@
 import GeometricLine from "./GeometricLine.mjs";
 import WhiteboardObject from "./WhiteboardObject.mjs";
+import Point from "./Point.mjs";
 
 export default class Ring extends WhiteboardObject {
     constructor(options) {
