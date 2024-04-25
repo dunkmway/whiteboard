@@ -29,10 +29,6 @@ import Point from "./Point.mjs";
 import BoundingBox from "./BoundingBox.mjs";
 import GeometricLine from "./GeometricLine.mjs";
 
-const isDarkMode = true;
-
-const SELECTED_COLOR = "#00ff00";
-
 class CanvasMode {
     static Select = new CanvasMode('Select');
     static Pen = new CanvasMode('Pen');
@@ -54,8 +50,11 @@ export default class Whiteboard {
             throw 'A whiteboard must be constructed with a canvas element.'
         }
 
+        this.debug = false;
+
         this.elements = new Map();
         this.canvas = canvas;
+        this.isDarkMode = true;
         this.toolbar = document.createElement('div');
         this.context = canvas.getContext('2d', { alpha: false });
         this.width = canvas.getBoundingClientRect().width;
@@ -68,9 +67,9 @@ export default class Whiteboard {
         this.mode = CanvasMode.Select;
         
         this.currentObject = null;
-        this.fillStyle = isDarkMode ? "#ffffff" : "#000000";
-        this.strokeStyle = isDarkMode ? "#ffffff" : "#000000";
-        this.backgroundColor = isDarkMode ? "#000000" : "#ffffff";
+        this.fillStyle = this.isDarkMode ? "#ffffff" : "#000000";
+        this.strokeStyle = this.isDarkMode ? "#ffffff" : "#000000";
+        this.backgroundColor = this.isDarkMode ? "#000000" : "#ffffff";
         this.lineWidth = 5;
         this.lineCap = 'butt';      // butt, round, square
         this.lineJoin = 'miter';    // miter, round, bevel
@@ -104,6 +103,7 @@ export default class Whiteboard {
         const strokeColorPicker = document.createElement('input');
         const fillColorPicker = document.createElement('input');
         const widthInput = document.createElement('input');
+        const debugButton = document.createElement('button');
 
         this.modeText.textContent = this.mode.name;
         this.modeText.style.color = this.strokeStyle;
@@ -121,6 +121,7 @@ export default class Whiteboard {
         fillColorPicker.value = this.fillStyle;
         widthInput.type = 'number';
         widthInput.value = this.lineWidth.toString();
+        debugButton.textContent = 'DEBUG';
 
         selectButton.addEventListener('click', () => this.setMode(CanvasMode.Select));
         penButton.addEventListener('click', () => this.setMode(CanvasMode.Pen));
@@ -133,6 +134,7 @@ export default class Whiteboard {
         strokeColorPicker.addEventListener('change', () => this.strokeStyle = strokeColorPicker.value);
         fillColorPicker.addEventListener('change', () => this.fillStyle = fillColorPicker.value);
         widthInput.addEventListener('change', () => this.lineWidth = parseInt(widthInput.value));
+        debugButton.addEventListener('click', () => this.toggleDebug());
         
         this.toolbar.appendChild(this.modeText);
         this.toolbar.appendChild(selectButton);
@@ -146,6 +148,7 @@ export default class Whiteboard {
         this.toolbar.appendChild(strokeColorPicker);
         this.toolbar.appendChild(fillColorPicker);
         this.toolbar.appendChild(widthInput);
+        this.toolbar.appendChild(debugButton);
 
         document.body.appendChild(this.toolbar);
 
@@ -241,14 +244,37 @@ export default class Whiteboard {
         })
     }
 
+    toggleDebug() {
+        this.debug = !this.debug;
+
+        if (this.debug) {
+            this.elements.forEach(element => this.showBoundingBox(element));
+        } else {
+            this.elements.forEach(element => this.hideBoundingBox(element));
+            this.redraw();
+        }
+    }
+
     showBoundingBox(element) {
-        element.setShowBoundingBox(true);
+        element.showBoundingBox = true;
         element.drawBoundingBox(this.context);
+
+        if (element.segments) {
+            element.segments.forEach(segment => {
+                segment.showBoundingBox = true;
+                segment.drawBoundingBox(this.context);
+            })
+        }
     }
 
     hideBoundingBox(element) {
-        element.setShowBoundingBox(false);
-        this.redraw();
+        element.showBoundingBox = false;
+
+        if (element.segments) {
+            element.segments.forEach(segment => {
+                segment.showBoundingBox = false;
+            })
+        }
     }
 
     handleMouseDown(e) {
@@ -261,8 +287,10 @@ export default class Whiteboard {
             lineJoin: this.lineJoin,
             lineDash: [],
             selectBoxColor: this.selectBoxColor,
-            boundingBoxColor: this.boundingBoxColor
+            boundingBoxColor: this.boundingBoxColor,
+            showBoundingBox: this.debug
         }
+        
         switch (this.mode) {
             case CanvasMode.Select:
                 this.selectDown(e);
@@ -546,7 +574,7 @@ export default class Whiteboard {
             // manually draw in the box
             this.context.beginPath();
             this.context.strokeStyle = this.selectBoxColor;
-            this.context.lineWidth = 5;
+            this.context.lineWidth = 2;
             this.context.setLineDash([4,2]);
             this.context.rect(this.currentObject.startPoint.x, this.currentObject.startPoint.y, this.currentObject.getWidth(), this.currentObject.getHeight());
             this.context.stroke();

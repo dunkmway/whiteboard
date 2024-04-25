@@ -51,14 +51,21 @@ export default class WhiteboardObject {
     }
 
     drawBoundingBox(context) {
+        // draw the bounding box on the given context
         context.strokeStyle = this.boundingBoxColor;
         context.lineWidth = 5;
         context.beginPath();
         context.rect(this.boundingBox.startPoint.x, this.boundingBox.startPoint.y, this.boundingBox.getWidth(), this.boundingBox.getHeight());
         context.stroke();
+
+        // if the element has segments, draw the bounding boxes on those segments
+        if (this.segments) {
+            this.segments.forEach(segment => segment.drawBoundingBox(context));
+        }
     }
 
     drawSelected(context) {
+        // draw the bounding box to signify the object is selected
         context.strokeStyle = this.selectBoxColor;
         context.lineWidth = 5;
         context.beginPath();
