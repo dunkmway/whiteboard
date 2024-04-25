@@ -12,10 +12,12 @@
 *   - figure out how to bezier curves on the path for smoother lines instead of lineTo
 *
 *   - New Whiteboard Elements
-*     - Polygon
+*     - Polygon (still needs point inside method - consider casting ray to the right and see how many edges it hits to see if we are inside.)
 *     - Text Box
 *   - Be able to select an element and modify it: change control points (corners, edges), edit text, translate, rotate
 *   - check on isPointInStroke and isPointInPath methods of the canvas context
+*   - Keyboard shortcuts, ctrl+z, ctrl+y, ctrl+c, ctrl+v, etc
+*   - fix rotation and translation to work with all types, they should all have their own rotate and translate methods to handle each case
 *
 */
 
@@ -419,7 +421,7 @@ export default class Whiteboard {
             case 'r':
                 this.setMode(CanvasMode.Ring);
                 break;
-            case 'P':
+            case 'g':
                 this.setMode(CanvasMode.Polygon);
                 break;
             case 'Delete':
