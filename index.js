@@ -1,3 +1,5 @@
+import Whiteboard from "./Whiteboard.mjs"
+
 let whiteboard;
 
 function main() {
@@ -9,6 +11,5 @@ function save() {
 }
 
 function load() {
-    const data = JSON.parse(document.getElementById('load').value);
-    whiteboard.load(data);
+    whiteboard.load(JSON.parse(document.getElementById('load').value));
 }
