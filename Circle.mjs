@@ -22,6 +22,10 @@ export default class Circle extends WhiteboardObject {
         context.arc(this.origin.x, this.origin.y, Math.abs(this.radius), 0, 2 * Math.PI);
         context.fill();
     }
+    
+    update() {
+        this.updateBoundingBox();
+    }
 
     updateBoundingBox() {
         this.boundingBox.update(this.origin.x - this.radius, this.origin.y - this.radius, this.origin.x + this.radius, this.origin.y + this.radius);

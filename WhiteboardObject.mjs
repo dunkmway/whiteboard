@@ -13,6 +13,7 @@ export default class WhiteboardObject {
         }
         const defaults = {
             origin: new Point(0, 0),
+            rotation: 0,
             fill: '#000000',
             stroke: '#000000',
             lineWidth: 1,
@@ -71,6 +72,18 @@ export default class WhiteboardObject {
         context.beginPath();
         context.rect(this.boundingBox.startPoint.x, this.boundingBox.startPoint.y, this.boundingBox.getWidth(), this.boundingBox.getHeight());
         context.stroke();
+    }
+
+    update() {
+        throw('The update method must be implemented for the child class ' + this.type)
+    }
+
+    updateBoundingBox() {
+        throw('The updateBoundingBox method must be implemented for the child class ' + this.type)
+    }
+
+    isLineIntersecting() {
+        throw('The isLineIntersecting method must be implemented for the child class ' + this.type)
     }
 
     pointIsInBoundingBox(point) {

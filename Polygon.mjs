@@ -1,20 +1,27 @@
 import GeometricLine from "./GeometricLine.mjs";
 import WhiteboardObject from "./WhiteboardObject.mjs";
+import Point from "./Point.mjs";
+import Line from "./Line.mjs";
 
-export default class Path extends WhiteboardObject {
+export default class Polygon extends WhiteboardObject {
     constructor(options) {
         super(options);
 
         if (options.segments) {
             options.segments = options.segments.map(segment => new Line(segment));
         }
+
         const defaults = {
-            type: 'path',
+            numSides: 5,
+            radius: 50,
+            type: 'polygon',
             segments: [],
         }
 
         Object.assign(defaults, options);
         Object.assign(this, defaults);
+
+        this.updateBoundingBox();
     }
 
     draw(context) {
@@ -24,20 +31,13 @@ export default class Path extends WhiteboardObject {
         });
     }
 
-    drawNextSegment(context, newSegment) {
-        this.segments.push(newSegment);
-        newSegment.draw(context);
-
-        this.updateBoundingBox();
-    }
-
     update() {
+        this.updateSegments();
         this.updateBoundingBox();
     }
-
+    
     updateBoundingBox() {
-        // find the boundaries
-
+        // the segments should define the bounding box so just find the limits
         let left = Infinity;
         let top = Infinity;
         let right = -Infinity;
@@ -79,6 +79,39 @@ export default class Path extends WhiteboardObject {
         })
 
         this.boundingBox.update(left, top, right, bottom);
+    }
+
+    updateSegments() {
+        this.segments = [];
+        // go through all sides
+        for (let i = 0; i < this.numSides; i++) {
+            // get the start angle and end angle reletive to the origin of the segment
+            const interiorAngle = (2 * Math.PI / this.numSides);
+            const startAngle = i * interiorAngle + this.rotation - (Math.PI / 2);
+            const endAngle = startAngle + interiorAngle;
+
+            // get the exact location of the start and end points
+            const start = new Point(this.origin.x + (Math.cos(startAngle) * this.radius), this.origin.y + (Math.sin(startAngle) * this.radius));
+            const end = new Point(this.origin.x + (Math.cos(endAngle) * this.radius), this.origin.y + (Math.sin(endAngle) * this.radius));
+
+            // push the new segment
+            this.segments.push(new Line({
+                origin: start,
+                endPoint: end,
+                fill: this.fill,
+                stroke: this.stroke,
+                lineWidth: this.lineWidth,
+                lineCap: this.lineCap,
+                lineJoin: this.lineJoin,
+                lineDash: this.lineDash
+            }))
+        }
+    }
+
+
+    isPointInside(point) {
+        console.error('FIXME: implement point is inside polygon')
+        return;
     }
 
     /**

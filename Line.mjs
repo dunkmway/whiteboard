@@ -11,7 +11,7 @@ export default class Line extends WhiteboardObject {
             options.endPoint = new Point(options.endPoint.x, options.endPoint.y);
         }
         const defaults = {
-            endPoint: new Point(0, 0),
+            endPoint: new Point(this.origin.x + 50, this.origin.y),
             type: 'line'
         }
 
@@ -28,6 +28,10 @@ export default class Line extends WhiteboardObject {
         context.stroke();
     }
 
+    update() {
+        this.updateBoundingBox();
+    }
+
     updateBoundingBox() {
         this.boundingBox.update(this.origin.x, this.origin.y, this.endPoint.x, this.endPoint.y);
     }
@@ -42,29 +46,5 @@ export default class Line extends WhiteboardObject {
             new GeometricLine(this.origin, this.endPoint),
             line
         );
-    }
-}
-
-class Fraction {
-    constructor(numerator, denominator) {
-        this.numerator = numerator;
-        this.denominator = denominator;
-    }
-
-    reduce() {
-        let a = this.numerator;
-        let b = this.denominator; 
-        let r;
-        while ((a % b) > 0)  {
-            r = a % b;
-            a = b;
-            b = r;
-        }
-        
-        return new Fraction(this.numerator / b, this.denominator / b);
-    }
-
-    static equals(frac1, frac2) {
-        return frac1.reduce() == frac2.reduce();
     }
 }

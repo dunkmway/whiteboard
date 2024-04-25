@@ -23,6 +23,10 @@ export default class Ring extends WhiteboardObject {
         context.stroke();
     }
 
+    update() {
+        this.updateBoundingBox();
+    }
+
     updateBoundingBox() {
         this.boundingBox.update(this.origin.x - this.radius, this.origin.y - this.radius, this.origin.x + this.radius, this.origin.y + this.radius);
     }

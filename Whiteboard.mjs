@@ -25,6 +25,7 @@ import Line from "./Line.mjs";
 import Path from "./Path.mjs";
 import Rectangle from "./Rectangle.mjs";
 import Ring from "./Ring.mjs";
+import Polygon from "./Polygon.mjs";
 import Point from "./Point.mjs";
 import BoundingBox from "./BoundingBox.mjs";
 import GeometricLine from "./GeometricLine.mjs";
@@ -38,6 +39,7 @@ class CanvasMode {
     static Circle = new CanvasMode('Circle');
     static Box = new CanvasMode('Box');
     static Ring = new CanvasMode('Ring');
+    static Polygon = new CanvasMode('Polygon');
 
     constructor(name) {
         this.name = name;
@@ -76,6 +78,8 @@ export default class Whiteboard {
         this.lineDash = [];
         this.selectBoxColor = "#00ff00";
         this.boundingBoxColor = "#ff0000";
+
+        this.polygonNumSides = 5;
         
         
         canvas.width = this.width;
@@ -99,6 +103,8 @@ export default class Whiteboard {
         const boxButton = document.createElement('button');
         const circleButton = document.createElement('button');
         const ringButton = document.createElement('button');
+        const polygonButton = document.createElement('button');
+        const polygonInput = document.createElement('input');
         const eraseButton = document.createElement('button');
         const strokeColorPicker = document.createElement('input');
         const fillColorPicker = document.createElement('input');
@@ -114,6 +120,9 @@ export default class Whiteboard {
         boxButton.textContent = 'Box';
         circleButton.textContent = 'Circle';
         ringButton.textContent = 'Ring';
+        polygonButton.textContent = 'Polygon';
+        polygonInput.type = 'number';
+        polygonInput.value = this.polygonNumSides.toString();
         eraseButton.textContent = 'Erase';
         strokeColorPicker.type = 'color';
         strokeColorPicker.value = this.strokeStyle;
@@ -130,10 +139,12 @@ export default class Whiteboard {
         boxButton.addEventListener('click', () => this.setMode(CanvasMode.Box));
         circleButton.addEventListener('click', () => this.setMode(CanvasMode.Circle));
         ringButton.addEventListener('click', () => this.setMode(CanvasMode.Ring));
+        polygonButton.addEventListener('click', () => this.setMode(CanvasMode.Polygon));
+        polygonInput.addEventListener('input', () => this.polygonNumSides = parseInt(polygonInput.value));
         eraseButton.addEventListener('click', () => this.setMode(CanvasMode.Erase));
         strokeColorPicker.addEventListener('change', () => this.strokeStyle = strokeColorPicker.value);
         fillColorPicker.addEventListener('change', () => this.fillStyle = fillColorPicker.value);
-        widthInput.addEventListener('change', () => this.lineWidth = parseInt(widthInput.value));
+        widthInput.addEventListener('input', () => this.lineWidth = parseInt(widthInput.value));
         debugButton.addEventListener('click', () => this.toggleDebug());
         
         this.toolbar.appendChild(this.modeText);
@@ -144,6 +155,8 @@ export default class Whiteboard {
         this.toolbar.appendChild(boxButton);
         this.toolbar.appendChild(circleButton);
         this.toolbar.appendChild(ringButton);
+        this.toolbar.appendChild(polygonButton);
+        this.toolbar.appendChild(polygonInput);
         this.toolbar.appendChild(eraseButton);  
         this.toolbar.appendChild(strokeColorPicker);
         this.toolbar.appendChild(fillColorPicker);
@@ -186,6 +199,9 @@ export default class Whiteboard {
                     break;
                 case 'ring':
                     this.add(new Ring(current));
+                    break;
+                case 'polygon':
+                    this.add(new Polygon(current));
                     break;
                 default:
             }
@@ -290,7 +306,7 @@ export default class Whiteboard {
             boundingBoxColor: this.boundingBoxColor,
             showBoundingBox: this.debug
         }
-        
+
         switch (this.mode) {
             case CanvasMode.Select:
                 this.selectDown(e);
@@ -313,6 +329,9 @@ export default class Whiteboard {
             case CanvasMode.Ring:
                 this.objectDown(e, new Ring(objectDefaults))
                 break;
+            case CanvasMode.Polygon:
+                this.objectDown(e, new Polygon({ ...objectDefaults, numSides: this.polygonNumSides, lineCap: 'round', lineJoin: 'round' }))
+                break;
             case CanvasMode.Erase:
                 this.eraserDown();
                 break;
@@ -331,6 +350,7 @@ export default class Whiteboard {
             case CanvasMode.Rectangle:
             case CanvasMode.Circle:
             case CanvasMode.Ring:
+            case CanvasMode.Polygon:
                 this.objectUp();
                 break;
             case CanvasMode.Erase:
@@ -362,6 +382,9 @@ export default class Whiteboard {
                 break;
             case CanvasMode.Ring:
                 this.ringMove(e);
+                break;
+            case CanvasMode.Polygon:
+                this.polygonMove(e);
                 break;
             case CanvasMode.Erase:
                 this.eraserMove(e);
@@ -396,6 +419,9 @@ export default class Whiteboard {
             case 'r':
                 this.setMode(CanvasMode.Ring);
                 break;
+            case 'P':
+                this.setMode(CanvasMode.Polygon);
+                break;
             case 'Delete':
             case 'Backspace':
                 if (this.mode == CanvasMode.Select) {
@@ -405,6 +431,86 @@ export default class Whiteboard {
                         }
                     })
                     this.redraw();
+                }
+                break;
+            case 'ArrowUp':
+                e.preventDefault();
+                if (e.ctrlKey) {
+
+                } else {
+                    if (this.mode == CanvasMode.Select) {
+                        this.elements.forEach(element => {
+                            if (element.selected) {
+                                element.origin.y -= 1;
+                                element.update();
+                            }
+                        })
+                        this.redraw();
+                    }
+                }
+                break;
+            case 'ArrowRight':
+                e.preventDefault();
+                if (e.ctrlKey) {
+                    if (this.mode == CanvasMode.Select) {
+                        this.elements.forEach(element => {
+                            if (element.selected) {
+                                element.rotation += 2 * Math.PI / 360;
+                                element.update();
+                            }
+                        })
+                        this.redraw();
+                    }
+                } else {
+                    if (this.mode == CanvasMode.Select) {
+                        this.elements.forEach(element => {
+                            if (element.selected) {
+                                element.origin.x += 1;
+                                element.update();
+                            }
+                        })
+                        this.redraw();
+                    }
+                }
+                break;
+            case 'ArrowDown':
+                e.preventDefault();
+                if (e.ctrlKey) {
+
+                } else {
+                    if (this.mode == CanvasMode.Select) {
+                        this.elements.forEach(element => {
+                            if (element.selected) {
+                                element.origin.y += 1;
+                                element.update();
+                            }
+                        })
+                        this.redraw();
+                    }
+                }
+                break;
+            case 'ArrowLeft':
+                e.preventDefault();
+                if (e.ctrlKey) {
+                    if (this.mode == CanvasMode.Select) {
+                        this.elements.forEach(element => {
+                            if (element.selected) {
+                                element.rotation -= 2 * Math.PI / 360;
+                                element.update();
+                            }
+                        })
+                        this.redraw();
+                    }
+                } else {
+                    if (this.mode == CanvasMode.Select) {
+                        this.elements.forEach(element => {
+                            if (element.selected) {
+                                element.origin.x -= 1;
+                                element.update();
+                            }
+                        })
+                        this.redraw();
+                    }
                 }
                 break;
             default:
@@ -455,6 +561,7 @@ export default class Whiteboard {
         this.elements.set(this.currentObject.id, this.currentObject)
     }
     objectUp() {
+        this.currentObject.update();
         this.currentObject = null;
         this.isMouseDown = false;
 
@@ -487,7 +594,7 @@ export default class Whiteboard {
             const mousePos = this.getMousePosition(e)
 
             this.currentObject.endPoint = mousePos;
-            this.currentObject.updateBoundingBox();
+            this.currentObject.update();
 
             this.redraw();
         }
@@ -499,7 +606,7 @@ export default class Whiteboard {
 
             this.currentObject.width = this.mouseCurrentPosition.x - this.currentObject.origin.x;
             this.currentObject.height = this.mouseCurrentPosition.y - this.currentObject.origin.y;
-            this.currentObject.updateBoundingBox();
+            this.currentObject.update();
 
             this.redraw();
         }
@@ -511,7 +618,7 @@ export default class Whiteboard {
 
             this.currentObject.width = this.mouseCurrentPosition.x - this.currentObject.origin.x;
             this.currentObject.height = this.mouseCurrentPosition.y - this.currentObject.origin.y;
-            this.currentObject.updateBoundingBox();
+            this.currentObject.update();
 
             this.redraw();
         }
@@ -522,7 +629,7 @@ export default class Whiteboard {
             this.mouseCurrentPosition.update(mousePos.x, mousePos.y)
 
             this.currentObject.radius = Point.distance(this.currentObject.origin, this.mouseCurrentPosition);
-            this.currentObject.updateBoundingBox();
+            this.currentObject.update();
 
             this.redraw();
         }
@@ -533,7 +640,18 @@ export default class Whiteboard {
             this.mouseCurrentPosition.update(mousePos.x, mousePos.y)
 
             this.currentObject.radius = Point.distance(this.currentObject.origin, this.mouseCurrentPosition);
-            this.currentObject.updateBoundingBox();
+            this.currentObject.update();
+
+            this.redraw();
+        }
+    }
+    polygonMove(e) {
+        if (this.isMouseDown) {
+            const mousePos = this.getMousePosition(e)
+            this.mouseCurrentPosition.update(mousePos.x, mousePos.y)
+
+            this.currentObject.radius = Point.distance(this.currentObject.origin, this.mouseCurrentPosition);
+            this.currentObject.update();
 
             this.redraw();
         }

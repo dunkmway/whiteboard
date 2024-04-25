@@ -24,6 +24,10 @@ export default class Box extends WhiteboardObject {
         context.stroke();
     }
 
+    update() {
+        this.updateBoundingBox();
+    }
+
     updateBoundingBox() {
         this.boundingBox.update(this.origin.x, this.origin.y, this.origin.x + this.width, this.origin.y + this.height);
     }
