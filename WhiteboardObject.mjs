@@ -1,4 +1,5 @@
 import BoundingBox from "./BoundingBox.mjs";
+import GeometricLine from "./GeometricLine.mjs";
 import Point from "./Point.mjs";
 
 export default class WhiteboardObject {
@@ -21,8 +22,10 @@ export default class WhiteboardObject {
             type: 'element',
             id: crypto.randomUUID(),
             boundingBox: new BoundingBox(0, 0, 0, 0),
-            showBoundingBox: DEBUG_MODE ?? false,
-            selected: false
+            showBoundingBox: false,
+            selected: false,
+            boundingBoxColor: "#ff0000",
+            selectBoxColor: "#00ff00"
         }
 
         Object.assign(defaults, options);
@@ -48,7 +51,7 @@ export default class WhiteboardObject {
     }
 
     drawBoundingBox(context) {
-        context.strokeStyle = BOUNDING_BOX_COLOR;
+        context.strokeStyle = this.boundingBoxColor;
         context.lineWidth = 5;
         context.beginPath();
         context.rect(this.boundingBox.startPoint.x, this.boundingBox.startPoint.y, this.boundingBox.getWidth(), this.boundingBox.getHeight());
@@ -56,7 +59,7 @@ export default class WhiteboardObject {
     }
 
     drawSelected(context) {
-        context.strokeStyle = SELECTED_COLOR;
+        context.strokeStyle = this.selectBoxColor;
         context.lineWidth = 5;
         context.beginPath();
         context.rect(this.boundingBox.startPoint.x, this.boundingBox.startPoint.y, this.boundingBox.getWidth(), this.boundingBox.getHeight());
@@ -67,6 +70,11 @@ export default class WhiteboardObject {
         return this.boundingBox.isPointInside(point);
     }
 
+    /**
+     * 
+     * @param {GeometricLine} line 
+     * @returns 
+     */
     lineIsInBoundingBox(line) {
         return this.boundingBox.lineIntersects(line);
     }

@@ -1,5 +1,5 @@
 import Point from "./Point.mjs";
-import Line from "./Line.mjs";
+import GeometricLine from "./GeometricLine.mjs";
 
 export default class BoundingBox {
     constructor(x1, y1, x2, y2) {
@@ -28,37 +28,42 @@ export default class BoundingBox {
         )
     }
 
+    /**
+     * 
+     * @param {GeometricLine} line 
+     * @returns 
+     */
     lineIntersects(line) {
         // check end points of the line if they are inside
-        if (this.isPointInside(line.origin) || this.isPointInside(line.endPoint)) {
+        if (this.isPointInside(line.startPoint) || this.isPointInside(line.endPoint)) {
             return true;
         }
 
         // FIXME: we might be able to optimize the intersecting algorithm with the assumption
         // that the bounding box line are horizontal and vertical
         // check if the line intersects any side of the bounding box
-        const top = new Line({
-            origin: new Point(this.startPoint.x, this.startPoint.y),
-            endPoint: new Point(this.endPoint.x, this.startPoint.y)
-        })
-        const right = new Line({
-            origin: new Point(this.endPoint.x, this.startPoint.y),
-            endPoint: new Point(this.endPoint.x, this.endPoint.y)
-        })
-        const bottom = new Line({
-            origin: new Point(this.endPoint.x, this.endPoint.y),
-            endPoint: new Point(this.startPoint.x, this.endPoint.y)
-        })
-        const left = new Line({
-            origin: new Point(this.startPoint.x, this.endPoint.y),
-            endPoint: new Point(this.startPoint.x, this.startPoint.y)
-        })
+        const top = new GeometricLine(
+            new Point(this.startPoint.x, this.startPoint.y),
+            new Point(this.endPoint.x, this.startPoint.y)
+        )
+        const right = new GeometricLine(
+            new Point(this.endPoint.x, this.startPoint.y),
+            new Point(this.endPoint.x, this.endPoint.y)
+        )
+        const bottom = new GeometricLine(
+            new Point(this.endPoint.x, this.endPoint.y),
+            new Point(this.startPoint.x, this.endPoint.y)
+        )
+        const left = new GeometricLine(
+            new Point(this.startPoint.x, this.endPoint.y),
+            new Point(this.startPoint.x, this.startPoint.y)
+        )
 
         return (
-            Line.doIntersect(line, top) ||
-            Line.doIntersect(line, right) ||
-            Line.doIntersect(line, bottom) ||
-            Line.doIntersect(line, left)
+            GeometricLine.doIntersect(line, top) ||
+            GeometricLine.doIntersect(line, right) ||
+            GeometricLine.doIntersect(line, bottom) ||
+            GeometricLine.doIntersect(line, left)
         )
     }
 

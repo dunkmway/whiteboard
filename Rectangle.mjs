@@ -1,3 +1,4 @@
+import GeometricLine from "./GeometricLine.mjs";
 import WhiteboardObject from "./WhiteboardObject.mjs";
 
 export default class Rectangle extends WhiteboardObject {
@@ -35,9 +36,14 @@ export default class Rectangle extends WhiteboardObject {
         )
     }
 
+    /**
+     * 
+     * @param {GeometricLine} line 
+     * @returns 
+     */
     isLineIntersecting(line) {
         // check end points of the line if they are inside
-        if (this.isPointInside(line.origin) || this.isPointInside(line.endPoint)) {
+        if (this.isPointInside(line.startPoint) || this.isPointInside(line.endPoint)) {
             return true;
         }
 

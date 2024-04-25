@@ -25,17 +25,13 @@ import Line from "./Line.mjs";
 import Path from "./Path.mjs";
 import Rectangle from "./Rectangle.mjs";
 import Ring from "./Ring.mjs";
+import Point from "./Point.mjs";
+import BoundingBox from "./BoundingBox.mjs";
+import GeometricLine from "./GeometricLine.mjs";
 
-const DEBUG_MODE = false;
 const isDarkMode = true;
 
 const SELECTED_COLOR = "#00ff00";
-const BOUNDING_BOX_COLOR = "#ff0000";
-const BACKGROUND_COLOR = isDarkMode ? "#000000" : "#ffffff";
-const FILL_COLOR = isDarkMode ? "#ffffff" : "#000000";
-const STROKE_STYLE = isDarkMode ? "#ffffff" : "#000000";
-
-
 
 class CanvasMode {
     static Select = new CanvasMode('Select');
@@ -72,12 +68,15 @@ export default class Whiteboard {
         this.mode = CanvasMode.Select;
         
         this.currentObject = null;
-        this.fillStyle = FILL_COLOR;
-        this.strokeStyle = STROKE_STYLE;
+        this.fillStyle = isDarkMode ? "#ffffff" : "#000000";
+        this.strokeStyle = isDarkMode ? "#ffffff" : "#000000";
+        this.backgroundColor = isDarkMode ? "#000000" : "#ffffff";
         this.lineWidth = 5;
         this.lineCap = 'butt';      // butt, round, square
         this.lineJoin = 'miter';    // miter, round, bevel
         this.lineDash = [];
+        this.selectBoxColor = "#00ff00";
+        this.boundingBoxColor = "#ff0000";
         
         
         canvas.width = this.width;
@@ -233,7 +232,7 @@ export default class Whiteboard {
         // clear the entire canvas
         this.context.clearRect(0, 0, this.width, this.height);
         // set the whiteboard background color
-        this.context.fillStyle = BACKGROUND_COLOR;
+        this.context.fillStyle = this.backgroundColor;
         this.context.fillRect(0, 0, canvas.width, canvas.height);
 
         // redraw all of the elements
@@ -253,75 +252,38 @@ export default class Whiteboard {
     }
 
     handleMouseDown(e) {
+        const objectDefaults = {
+            origin: this.getMousePosition(e),
+            fill: this.fillStyle,
+            stroke: this.strokeStyle,
+            lineWidth: this.lineWidth,
+            lineCap: this.lineCap,
+            lineJoin: this.lineJoin,
+            lineDash: [],
+            selectBoxColor: this.selectBoxColor,
+            boundingBoxColor: this.boundingBoxColor
+        }
         switch (this.mode) {
             case CanvasMode.Select:
                 this.selectDown(e);
                 break
             case CanvasMode.Pen:
-                this.objectDown(e, new Path({
-                    origin: this.getMousePosition(e),
-                    fill: this.fillStyle,
-                    stroke: this.strokeStyle,
-                    lineWidth: this.lineWidth,
-                    lineCap: 'round',
-                    lineJoin: 'round',
-                    lineDash: [],
-                }));
+                this.objectDown(e, new Path({ ...objectDefaults, lineCap: 'round', lineJoin: 'round' }));
                 break;
             case CanvasMode.Line:
-                this.objectDown(e, new Line({
-                    origin: this.getMousePosition(e),
-                    fill: this.fillStyle,
-                    stroke: this.strokeStyle,
-                    lineWidth: this.lineWidth,
-                    lineCap: this.lineCap,
-                    lineJoin: this.lineJoin,
-                    lineDash: [],
-                }))
+                this.objectDown(e, new Line(objectDefaults))
                 break;
             case CanvasMode.Rectangle:
-                this.objectDown(e, new Rectangle({
-                    origin: this.getMousePosition(e),
-                    fill: this.fillStyle,
-                    stroke: this.strokeStyle,
-                    lineWidth: this.lineWidth,
-                    lineCap: this.lineCap,
-                    lineJoin: this.lineJoin,
-                    lineDash: [],
-                }))
+                this.objectDown(e, new Rectangle(objectDefaults))
                 break;
             case CanvasMode.Box:
-                this.objectDown(e, new Box({
-                    origin: this.getMousePosition(e),
-                    fill: this.fillStyle,
-                    stroke: this.strokeStyle,
-                    lineWidth: this.lineWidth,
-                    lineCap: this.lineCap,
-                    lineJoin: this.lineJoin,
-                    lineDash: [],
-                }))
+                this.objectDown(e, new Box(objectDefaults))
                 break;
             case CanvasMode.Circle:
-                this.objectDown(e, new Circle({
-                    origin: this.getMousePosition(e),
-                    fill: this.fillStyle,
-                    stroke: this.strokeStyle,
-                    lineWidth: this.lineWidth,
-                    lineCap: this.lineCap,
-                    lineJoin: this.lineJoin,
-                    lineDash: [],
-                }))
+                this.objectDown(e, new Circle(objectDefaults))
                 break;
             case CanvasMode.Ring:
-                this.objectDown(e, new Ring({
-                    origin: this.getMousePosition(e),
-                    fill: this.fillStyle,
-                    stroke: this.strokeStyle,
-                    lineWidth: this.lineWidth,
-                    lineCap: this.lineCap,
-                    lineJoin: this.lineJoin,
-                    lineDash: [],
-                }))
+                this.objectDown(e, new Ring(objectDefaults))
                 break;
             case CanvasMode.Erase:
                 this.eraserDown();
@@ -431,6 +393,11 @@ export default class Whiteboard {
         return foundElements;
     }
 
+    /**
+     * 
+     * @param {GeometricLine} line 
+     * @returns 
+     */
     queryAtLine(line) {
         let foundElements = [];
         this.elements.forEach(element => {
@@ -578,7 +545,7 @@ export default class Whiteboard {
 
             // manually draw in the box
             this.context.beginPath();
-            this.context.strokeStyle = SELECTED_COLOR;
+            this.context.strokeStyle = this.selectBoxColor;
             this.context.lineWidth = 5;
             this.context.setLineDash([4,2]);
             this.context.rect(this.currentObject.startPoint.x, this.currentObject.startPoint.y, this.currentObject.getWidth(), this.currentObject.getHeight());
@@ -598,10 +565,10 @@ export default class Whiteboard {
 
         if (this.isMouseDown) {
             // eraser line
-            const eraserLine = new Line({
-                origin: new Point(this.mousePreviousPosition.x, this.mousePreviousPosition.y),
-                endPoint: new Point(this.mouseCurrentPosition.x, this.mouseCurrentPosition.y)
-            })
+            const eraserLine = new GeometricLine(
+                new Point(this.mousePreviousPosition.x, this.mousePreviousPosition.y),
+                new Point(this.mouseCurrentPosition.x, this.mouseCurrentPosition.y)
+            )
 
             // check if intersects with any elements
             // first check bounding box to narrow the search

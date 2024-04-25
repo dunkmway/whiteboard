@@ -13,3 +13,5 @@ function save() {
 function load() {
     whiteboard.load(JSON.parse(document.getElementById('load').value));
 }
+
+document.addEventListener('DOMContentLoaded', main);

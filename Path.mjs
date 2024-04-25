@@ -1,3 +1,4 @@
+import GeometricLine from "./GeometricLine.mjs";
 import WhiteboardObject from "./WhiteboardObject.mjs";
 
 export default class Path extends WhiteboardObject {
@@ -76,6 +77,11 @@ export default class Path extends WhiteboardObject {
         this.boundingBox.update(left, top, right, bottom);
     }
 
+    /**
+     * 
+     * @param {GeometricLine} line 
+     * @returns 
+     */
     isLineIntersecting(line) {
         for (let i = 0; i < this.segments.length; i++) {
             if (this.segments[i].isLineIntersecting(line)) {

@@ -1,3 +1,4 @@
+import GeometricLine from "./GeometricLine.mjs";
 import WhiteboardObject from "./WhiteboardObject.mjs";
 
 export default class Ring extends WhiteboardObject {
@@ -29,11 +30,16 @@ export default class Ring extends WhiteboardObject {
         return Point.distance(this.origin, point) <= this.radius;
     }
 
+    /**
+     * 
+     * @param {GeometricLine} line 
+     * @returns 
+     */
     isLineIntersecting(line) {
         // check if one end point is inside and the other outside
         if (
-            this.isPointInside(line.origin) && !this.isPointInside(line.endPoint) || 
-            this.isPointInside(line.endPoint) && !this.isPointInside(line.origin)
+            this.isPointInside(line.startPoint) && !this.isPointInside(line.endPoint) || 
+            this.isPointInside(line.endPoint) && !this.isPointInside(line.startPoint)
         ) {
             return true;
         }
