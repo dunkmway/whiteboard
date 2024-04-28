@@ -722,8 +722,10 @@ export default class Whiteboard {
                 element.selected = (element.selected && this.isDragging) || isInside;
             }
     
-            if (element.selected) this.selectedElements.add(id);
-            console.log(element.selected && element)
+            if (element.selected) {
+                this.selectedElements.add(id);
+                console.log(element);
+            }
         };
     
         this.redraw();
