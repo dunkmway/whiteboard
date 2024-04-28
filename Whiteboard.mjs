@@ -18,6 +18,7 @@
 *   - check on isPointInStroke and isPointInPath methods of the canvas context
 *   - Keyboard shortcuts, ctrl+z, ctrl+y, ctrl+c, ctrl+v, etc
 *   - fix rotation and translation to work with all types, they should all have their own rotate and translate methods to handle each case
+*   - clean up selecting objects, make a method that selects and element by adding it to the set and setting the object property
 *
 */
 
@@ -29,7 +30,6 @@ import Rectangle from "./Rectangle.mjs";
 import Ring from "./Ring.mjs";
 import Polygon from "./Polygon.mjs";
 import Point from "./Point.mjs";
-import BoundingBox from "./BoundingBox.mjs";
 import GeometricLine from "./GeometricLine.mjs";
 
 class CanvasMode {
@@ -70,6 +70,7 @@ export default class Whiteboard {
         this.height = canvas.getBoundingClientRect().height;
 
         this.isMouseDown = false;
+        this.isDragging = false;
         this.mouseCurrentPosition = new Point(0, 0);
         this.mousePreviousPosition = new Point(0, 0);
         
@@ -365,6 +366,7 @@ export default class Whiteboard {
             default:
         }
         this.isMouseDown = true;
+        this.isDragging = false;
     }
 
     handleMouseUp(e) {
@@ -387,6 +389,7 @@ export default class Whiteboard {
             default:
         }
         this.isMouseDown = false;
+        this.isDragging = false;
     }
 
     handleMouseMove(e) {
@@ -422,6 +425,7 @@ export default class Whiteboard {
             default:
         }
         this.mousePreviousPosition = this.mouseCurrentPosition;
+        this.isDragging = this.isMouseDown;
     }
 
     handleKeyDown(e) {
@@ -715,10 +719,11 @@ export default class Whiteboard {
             if (e.ctrlKey) {
                 element.selected = element.selected || isInside;
             } else {
-                element.selected = isInside;
+                element.selected = (element.selected && this.isDragging) || isInside;
             }
     
             if (element.selected) this.selectedElements.add(id);
+            console.log(element.selected && element)
         };
     
         this.redraw();

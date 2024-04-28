@@ -33,8 +33,8 @@ export default class Path extends WhiteboardObject {
     }
 
     update() {
-        this.updateBoundingBox();
         this.updateSegments();
+        this.updateBoundingBox();
     }
 
     updateBoundingBox() {
@@ -86,7 +86,7 @@ export default class Path extends WhiteboardObject {
     updateSegments() {
         // only update if the origin and the origin of the first segment are different
         if (this.segments.length == 0) return;
-        if (this.origin.x != this.segments[0].origin.x || this.origin.y != this.segments[0].origin.y) return;
+        if (this.origin.x == this.segments[0].origin.x && this.origin.y == this.segments[0].origin.y) return;
 
         const deltaX = this.segments[0].origin.x - this.origin.x;
         const deltaY = this.segments[0].origin.y - this.origin.y;
@@ -99,11 +99,17 @@ export default class Path extends WhiteboardObject {
     }
 
     translate(x, y) {
+        this.origin.x += x;
+        this.origin.y += y;
+
         this.segments.forEach(segment => segment.translate(x, y));
         this.update();
     }
 
     translateTo(x, y) {
+        this.origin.x = x;
+        this.origin.y = y;
+
         this.segments.forEach(segment => segment.translateTo(x, y));
         this.update();
     }
