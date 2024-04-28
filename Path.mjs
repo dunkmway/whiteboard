@@ -16,6 +16,8 @@ export default class Path extends WhiteboardObject {
 
         Object.assign(defaults, options);
         Object.assign(this, defaults);
+
+        this.update();
     }
 
     draw(context) {
@@ -88,14 +90,9 @@ export default class Path extends WhiteboardObject {
         if (this.segments.length == 0) return;
         if (this.origin.x == this.segments[0].origin.x && this.origin.y == this.segments[0].origin.y) return;
 
-        const deltaX = this.segments[0].origin.x - this.origin.x;
-        const deltaY = this.segments[0].origin.y - this.origin.y;
-        this.segments.forEach(segment => {
-            segment.origin.x += deltaX;
-            segment.origin.y += deltaY;
-            segment.endPoint.x += deltaX;
-            segment.endPoint.y += deltaY;
-        })
+        const deltaX = this.origin.x - this.segments[0].origin.x;
+        const deltaY = this.origin.y - this.segments[0].origin.y;
+        this.segments.forEach(segment => segment.translate(deltaX, deltaY));
     }
 
     translate(x, y) {

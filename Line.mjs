@@ -18,7 +18,7 @@ export default class Line extends WhiteboardObject {
         Object.assign(defaults, options);
         Object.assign(this, defaults);
 
-        this.updateBoundingBox();
+        this.update();
     }
 
     draw(context) {

@@ -19,6 +19,9 @@
 *   - Keyboard shortcuts, ctrl+z, ctrl+y, ctrl+c, ctrl+v, etc
 *   - fix rotation and translation to work with all types, they should all have their own rotate and translate methods to handle each case
 *   - clean up selecting objects, make a method that selects and element by adding it to the set and setting the object property
+*   - fix pasting path, very weird behavior (also happens when pasting multiple objects) something is happening with the bounding box of the whole object not updating
+*   - when an object is selected, changing the styling input will change the selected object
+*   - make minimum size for object
 *
 */
 
@@ -238,6 +241,15 @@ export default class Whiteboard {
     }
 
     setMode(mode) {
+        // unselect everything if we are leaving the select mode
+        if (this.mode = CanvasMode.Select && mode != CanvasMode.Select) {
+            if (this.selectedElements) {
+                this.selectedElements.forEach(id => this.elements.get(id).selected = false);
+                this.selectedElements.clear();
+                this.redraw();
+            }
+        }
+
         this.mode = mode;
         
         // rerender the current mode
@@ -460,10 +472,10 @@ export default class Whiteboard {
             case 'c':
                 if (e.ctrlKey) {
                     if (this.mode == CanvasMode.Select) {
-                        this.clipboard = Array.from(this.elements, ([key, value]) => value)
-                        .filter(element => element.selected)
-                        .map(element => {
-                            return this.convertObjectToWhiteboardObject({...element});
+                        this.clipboard = Array.from(this.selectedElements)
+                        .map(id => {
+                            const element = this.elements.get(id);
+                            return element;
                         });
                     }
                 }
@@ -471,11 +483,12 @@ export default class Whiteboard {
             case 'x':
                 if (e.ctrlKey) {
                     if (this.mode == CanvasMode.Select) {
-                        this.clipboard = Array.from(this.elements, ([key, value]) => value)
-                        .filter(element => element.selected)
-                        .map(element => {
-                            this.elements.delete(element.id)
-                            return this.convertObjectToWhiteboardObject({...element});
+                        this.clipboard = Array.from(this.selectedElements)
+                        .map(id => {
+                            const element = this.elements.get(id);
+                            this.selectedElements.delete(id);
+                            this.elements.delete(id);
+                            return element;
                         });
                         this.redraw();
                     }
@@ -483,24 +496,29 @@ export default class Whiteboard {
                 break;
             case 'v':
                 if (e.ctrlKey) {
-                    this.clipboard = this.clipboard.map(element => {
-                        // change the id
-                        element.id = crypto.randomUUID();
-                        // change the origin (and endpoint) to the current mouse position
-                        if (element.endPoint) {
-                            element.endPoint = new Point(this.mouseCurrentPosition.x + (element.endPoint.x - element.origin.x), this.mouseCurrentPosition.y + (element.endPoint.y - element.origin.y));
-                        }
-                        element.origin = this.mouseCurrentPosition;
-                        // remove the selected state
-                        element.selected = false;
-                        // update the element
-                        element.update();
-                        // add the new element to the whiteboard
-                        this.add(element);
-                        // copy the element for the clipboard (to paste again a copy)
-                        return this.convertObjectToWhiteboardObject({...element});
-                    });
-                    this.redraw();
+                    //FIXME: not working, the object bug out
+                    ////////////////////////////////////////
+                    // this.clipboard = this.clipboard.map(element => {
+                    //     element = this.convertObjectToWhiteboardObject(element);
+                    //     // change the id
+                    //     element.id = crypto.randomUUID();
+                    //     if (element.segments) {
+                    //         element.segments.forEach(segment => segment.id = crypto.randomUUID());
+                    //     }
+                    //     // change the origin (and endpoint) to the current mouse position
+                    //     if (element.endPoint) {
+                    //         element.endPoint = new Point(this.mouseCurrentPosition.x + (element.endPoint.x - element.origin.x), this.mouseCurrentPosition.y + (element.endPoint.y - element.origin.y));
+                    //     }
+                    //     element.origin = this.mouseCurrentPosition;
+                    //     // remove the selected state
+                    //     element.selected = false;
+                    //     // update the element
+                    //     element.update();
+                    //     // add the new element to the whiteboard
+                    //     this.add(element);
+                    //     // copy the element for the clipboard (to paste again a copy)
+                    //     return element;
+                    // });
                 }
                 break;
             case 'Delete':
