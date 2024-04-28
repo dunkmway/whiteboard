@@ -34,6 +34,7 @@ export default class Path extends WhiteboardObject {
 
     update() {
         this.updateBoundingBox();
+        this.updateSegments();
     }
 
     updateBoundingBox() {
@@ -80,6 +81,21 @@ export default class Path extends WhiteboardObject {
         })
 
         this.boundingBox.update(left, top, right, bottom);
+    }
+
+    updateSegments() {
+        // only update if the origin and the origin of the first segment are different
+        if (this.segments.length == 0) return;
+        if (this.origin.x != this.segments[0].origin.x || this.origin.y != this.segments[0].origin.y) return;
+
+        const deltaX = this.segments[0].origin.x - this.origin.x;
+        const deltaY = this.segments[0].origin.y - this.origin.y;
+        this.segments.forEach(segment => {
+            segment.origin.x += deltaX;
+            segment.origin.y += deltaY;
+            segment.endPoint.x += deltaX;
+            segment.endPoint.y += deltaY;
+        })
     }
 
     translate(x, y) {

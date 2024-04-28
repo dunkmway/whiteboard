@@ -478,8 +478,11 @@ export default class Whiteboard {
                 if (e.ctrlKey) {
                     this.clipboard = this.clipboard.map(element => {
                         // change the id
-                        element.id = crypto.randomUUID(),
-                        // change the origin to the current mouse position
+                        element.id = crypto.randomUUID();
+                        // change the origin (and endpoint) to the current mouse position
+                        if (element.endPoint) {
+                            element.endPoint = new Point(this.mouseCurrentPosition.x + (element.endPoint.x - element.origin.x), this.mouseCurrentPosition.y + (element.endPoint.y - element.origin.y));
+                        }
                         element.origin = this.mouseCurrentPosition;
                         // remove the selected state
                         element.selected = false;
