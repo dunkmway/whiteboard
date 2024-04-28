@@ -56,6 +56,8 @@ export default class Whiteboard {
 
         this.debug = false;
 
+        this.clipboard = null;
+
         this.elements = new Map();
         this.canvas = canvas;
         this.isDarkMode = true;
@@ -210,6 +212,27 @@ export default class Whiteboard {
         }
     }
 
+    convertObjectToWhiteboardObject(object) {
+        switch (object.type) {
+            case 'path':
+                return new Path(object);
+            case 'line':
+                return new Line(object);
+            case 'rectangle':
+                return new Rectangle(object);
+            case 'box':
+                return new Box(object);
+            case 'circle':
+                return new Circle(object);
+            case 'ring':
+                return new Ring(object);
+            case 'polygon':
+                return new Polygon(object);
+            default:
+                return null;
+        }
+    }
+
     setMode(mode) {
         this.mode = mode;
         
@@ -230,7 +253,6 @@ export default class Whiteboard {
     remove(element) {
         // remove the element from the elements object
         this.elements.delete(element.id)
-
         // redraw the canvas
         this.redraw();
     }
@@ -314,31 +336,32 @@ export default class Whiteboard {
                 this.selectDown(e);
                 break
             case CanvasMode.Pen:
-                this.objectDown(e, new Path({ ...objectDefaults, lineCap: 'round', lineJoin: 'round' }));
+                this.objectDown(new Path({ ...objectDefaults, lineCap: 'round', lineJoin: 'round' }));
                 break;
             case CanvasMode.Line:
-                this.objectDown(e, new Line(objectDefaults))
+                this.objectDown(new Line(objectDefaults))
                 break;
             case CanvasMode.Rectangle:
-                this.objectDown(e, new Rectangle(objectDefaults))
+                this.objectDown(new Rectangle(objectDefaults))
                 break;
             case CanvasMode.Box:
-                this.objectDown(e, new Box(objectDefaults))
+                this.objectDown(new Box(objectDefaults))
                 break;
             case CanvasMode.Circle:
-                this.objectDown(e, new Circle(objectDefaults))
+                this.objectDown(new Circle(objectDefaults))
                 break;
             case CanvasMode.Ring:
-                this.objectDown(e, new Ring(objectDefaults))
+                this.objectDown(new Ring(objectDefaults))
                 break;
             case CanvasMode.Polygon:
-                this.objectDown(e, new Polygon({ ...objectDefaults, numSides: this.polygonNumSides, lineCap: 'round', lineJoin: 'round' }))
+                this.objectDown(new Polygon({ ...objectDefaults, numSides: this.polygonNumSides, lineCap: 'round', lineJoin: 'round' }))
                 break;
             case CanvasMode.Erase:
                 this.eraserDown();
                 break;
             default:
         }
+        this.isMouseDown = true;
     }
 
     handleMouseUp(e) {
@@ -360,39 +383,42 @@ export default class Whiteboard {
                 break;
             default:
         }
+        this.isMouseDown = false;
     }
 
     handleMouseMove(e) {
+        this.mouseCurrentPosition = this.getMousePosition(e);
         switch (this.mode) {
             case CanvasMode.Select:
                 this.selectMove(e);
                 break
             case CanvasMode.Pen:
-                this.pathMove(e);
+                this.pathMove();
                 break;
             case CanvasMode.Line:
-                this.lineMove(e);
+                this.lineMove();
                 break; 
             case CanvasMode.Rectangle:
-                this.rectangleMove(e);
+                this.rectangleMove();
                 break;
             case CanvasMode.Box:
-                this.boxMove(e);
+                this.boxMove();
                 break;
             case CanvasMode.Circle:
-                this.circleMove(e);
+                this.circleMove();
                 break;
             case CanvasMode.Ring:
-                this.ringMove(e);
+                this.ringMove();
                 break;
             case CanvasMode.Polygon:
-                this.polygonMove(e);
+                this.polygonMove();
                 break;
             case CanvasMode.Erase:
-                this.eraserMove(e);
+                this.eraserMove();
                 break;
             default:
         }
+        this.mousePreviousPosition = this.mouseCurrentPosition;
     }
 
     handleKeyDown(e) {
@@ -424,6 +450,49 @@ export default class Whiteboard {
             case 'g':
                 this.setMode(CanvasMode.Polygon);
                 break;
+            case 'c':
+                if (e.ctrlKey) {
+                    if (this.mode == CanvasMode.Select) {
+                        this.clipboard = Array.from(this.elements, ([key, value]) => value)
+                        .filter(element => element.selected)
+                        .map(element => {
+                            return this.convertObjectToWhiteboardObject({...element});
+                        });
+                    }
+                }
+                break;
+            case 'x':
+                if (e.ctrlKey) {
+                    if (this.mode == CanvasMode.Select) {
+                        this.clipboard = Array.from(this.elements, ([key, value]) => value)
+                        .filter(element => element.selected)
+                        .map(element => {
+                            this.elements.delete(element.id)
+                            return this.convertObjectToWhiteboardObject({...element});
+                        });
+                        this.redraw();
+                    }
+                }
+                break;
+            case 'v':
+                if (e.ctrlKey) {
+                    this.clipboard = this.clipboard.map(element => {
+                        // change the id
+                        element.id = crypto.randomUUID(),
+                        // change the origin to the current mouse position
+                        element.origin = this.mouseCurrentPosition;
+                        // remove the selected state
+                        element.selected = false;
+                        // update the element
+                        element.update();
+                        // add the new element to the whiteboard
+                        this.add(element);
+                        // copy the element for the clipboard (to paste again a copy)
+                        return this.convertObjectToWhiteboardObject({...element});
+                    });
+                    this.redraw();
+                }
+                break;
             case 'Delete':
             case 'Backspace':
                 if (this.mode == CanvasMode.Select) {
@@ -443,8 +512,7 @@ export default class Whiteboard {
                     if (this.mode == CanvasMode.Select) {
                         this.elements.forEach(element => {
                             if (element.selected) {
-                                element.origin.y -= 1;
-                                element.update();
+                                element.translate(0, -1);
                             }
                         })
                         this.redraw();
@@ -457,7 +525,7 @@ export default class Whiteboard {
                     if (this.mode == CanvasMode.Select) {
                         this.elements.forEach(element => {
                             if (element.selected) {
-                                element.rotation += 2 * Math.PI / 360;
+                                element.rotate(2 * Math.PI / 360)
                                 element.update();
                             }
                         })
@@ -467,8 +535,7 @@ export default class Whiteboard {
                     if (this.mode == CanvasMode.Select) {
                         this.elements.forEach(element => {
                             if (element.selected) {
-                                element.origin.x += 1;
-                                element.update();
+                                element.translate(1, 0);
                             }
                         })
                         this.redraw();
@@ -483,8 +550,7 @@ export default class Whiteboard {
                     if (this.mode == CanvasMode.Select) {
                         this.elements.forEach(element => {
                             if (element.selected) {
-                                element.origin.y += 1;
-                                element.update();
+                                element.translate(0, 1);
                             }
                         })
                         this.redraw();
@@ -497,8 +563,7 @@ export default class Whiteboard {
                     if (this.mode == CanvasMode.Select) {
                         this.elements.forEach(element => {
                             if (element.selected) {
-                                element.rotation -= 2 * Math.PI / 360;
-                                element.update();
+                                element.rotate(-2 * Math.PI / 360)
                             }
                         })
                         this.redraw();
@@ -507,8 +572,7 @@ export default class Whiteboard {
                     if (this.mode == CanvasMode.Select) {
                         this.elements.forEach(element => {
                             if (element.selected) {
-                                element.origin.x -= 1;
-                                element.update();
+                                element.translate(-1, 0);
                             }
                         })
                         this.redraw();
@@ -554,27 +618,18 @@ export default class Whiteboard {
         return foundElements;
     }
 
-    objectDown(e, newObject) {
-        const mousePos = this.getMousePosition(e)
-        this.mousePreviousPosition.update(mousePos.x, mousePos.y)
-        this.isMouseDown = true;
-
+    objectDown(newObject) {
         this.currentObject = newObject;
         this.elements.set(this.currentObject.id, this.currentObject)
     }
     objectUp() {
         this.currentObject.update();
         this.currentObject = null;
-        this.isMouseDown = false;
-
         this.redraw();
     }
 
-    pathMove(e) {
+    pathMove() {
         if (this.isMouseDown) {
-            const mousePos = this.getMousePosition(e)
-            this.mouseCurrentPosition.update(mousePos.x, mousePos.y)
-
             this.currentObject.drawNextSegment(
                 this.context,
                 new Line({
@@ -588,73 +643,49 @@ export default class Whiteboard {
                     lineDash: this.currentObject.lineDash
                 }
             ))
-            this.mousePreviousPosition.update(mousePos.x, mousePos.y)
         }
     }
-    lineMove(e) {
+    lineMove() {
         if (this.isMouseDown) {
-            const mousePos = this.getMousePosition(e)
-
             this.currentObject.endPoint = mousePos;
             this.currentObject.update();
-
             this.redraw();
         }
     }
-    rectangleMove(e) {
+    rectangleMove() {
         if (this.isMouseDown) {
-            const mousePos = this.getMousePosition(e)
-            this.mouseCurrentPosition.update(mousePos.x, mousePos.y)
-
             this.currentObject.width = this.mouseCurrentPosition.x - this.currentObject.origin.x;
             this.currentObject.height = this.mouseCurrentPosition.y - this.currentObject.origin.y;
             this.currentObject.update();
-
             this.redraw();
         }
     }
-    boxMove(e) {
+    boxMove() {
         if (this.isMouseDown) {
-            const mousePos = this.getMousePosition(e)
-            this.mouseCurrentPosition.update(mousePos.x, mousePos.y)
-
             this.currentObject.width = this.mouseCurrentPosition.x - this.currentObject.origin.x;
             this.currentObject.height = this.mouseCurrentPosition.y - this.currentObject.origin.y;
             this.currentObject.update();
-
             this.redraw();
         }
     }
-    circleMove(e) {
+    circleMove() {
         if (this.isMouseDown) {
-            const mousePos = this.getMousePosition(e)
-            this.mouseCurrentPosition.update(mousePos.x, mousePos.y)
-
             this.currentObject.radius = Point.distance(this.currentObject.origin, this.mouseCurrentPosition);
             this.currentObject.update();
-
             this.redraw();
         }
     }
-    ringMove(e) {
+    ringMove() {
         if (this.isMouseDown) {
-            const mousePos = this.getMousePosition(e)
-            this.mouseCurrentPosition.update(mousePos.x, mousePos.y)
-
             this.currentObject.radius = Point.distance(this.currentObject.origin, this.mouseCurrentPosition);
             this.currentObject.update();
-
             this.redraw();
         }
     }
-    polygonMove(e) {
+    polygonMove() {
         if (this.isMouseDown) {
-            const mousePos = this.getMousePosition(e)
-            this.mouseCurrentPosition.update(mousePos.x, mousePos.y)
-
             this.currentObject.radius = Point.distance(this.currentObject.origin, this.mouseCurrentPosition);
             this.currentObject.update();
-
             this.redraw();
         }
     }
@@ -662,10 +693,7 @@ export default class Whiteboard {
     selectDown(e) {
         // unselect everything
         this.elements.forEach(element => element.selected = false);
-
         const mousePos = this.getMousePosition(e)
-        this.isMouseDown = true;
-
         this.currentObject = new BoundingBox(mousePos.x, mousePos.y, mousePos.x, mousePos.y);
     }
     selectUp() {
@@ -676,14 +704,10 @@ export default class Whiteboard {
                 console.log(element);
             }
         })
-
         this.currentObject = null;
-        this.isMouseDown = false;
-
         this.redraw();
     }
     selectMove(e) {
-
         if (this.isMouseDown) {
             const mousePos = this.getMousePosition(e)
             this.currentObject.update(this.currentObject.startPoint.x, this.currentObject.startPoint.y, mousePos.x, mousePos.y);
@@ -702,15 +726,10 @@ export default class Whiteboard {
     }
 
     eraserDown() {
-        this.isMouseDown = true;
     }
     eraserUp() {
-        this.isMouseDown = false;
     }
-    eraserMove(e) {
-        const mousePos = this.getMousePosition(e)
-        this.mouseCurrentPosition.update(mousePos.x, mousePos.y)
-
+    eraserMove() {
         if (this.isMouseDown) {
             // eraser line
             const eraserLine = new GeometricLine(
@@ -730,8 +749,6 @@ export default class Whiteboard {
                 }
             })
         }
-
-        this.mousePreviousPosition.update(mousePos.x, mousePos.y)
     }
 
 

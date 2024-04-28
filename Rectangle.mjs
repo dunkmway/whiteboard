@@ -54,28 +54,28 @@ export default class Rectangle extends WhiteboardObject {
 
         const endPoint = new Point(this.origin.x + this.width, this.origin.y + this.height);
         // check if the line intersects any side of the box
-        const top = new Line({
+        const top = new GeometricLine({
             origin: new Point(this.origin.x, this.origin.y),
             endPoint: new Point(endPoint.x, this.origin.y)
         })
-        const right = new Line({
+        const right = new GeometricLine({
             origin: new Point(endPoint.x, this.origin.y),
             endPoint: new Point(endPoint.x, endPoint.y)
         })
-        const bottom = new Line({
+        const bottom = new GeometricLine({
             origin: new Point(endPoint.x, endPoint.y),
             endPoint: new Point(this.origin.x, endPoint.y)
         })
-        const left = new Line({
+        const left = new GeometricLine({
             origin: new Point(this.origin.x, endPoint.y),
             endPoint: new Point(this.origin.x, this.origin.y)
         })
 
         return (
-            Line.doIntersect(line, top) ||
-            Line.doIntersect(line, right) ||
-            Line.doIntersect(line, bottom) ||
-            Line.doIntersect(line, left)
+            GeometricLine.doIntersect(line, top) ||
+            GeometricLine.doIntersect(line, right) ||
+            GeometricLine.doIntersect(line, bottom) ||
+            GeometricLine.doIntersect(line, left)
         )
     }
 }

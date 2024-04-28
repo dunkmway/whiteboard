@@ -108,7 +108,6 @@ export default class Polygon extends WhiteboardObject {
         }
     }
 
-
     isPointInside(point) {
         console.error('FIXME: implement point is inside polygon')
         return;

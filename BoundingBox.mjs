@@ -20,6 +20,13 @@ export default class BoundingBox {
         return this.endPoint.y - this.startPoint.y;
     }
 
+    getCenter() {
+        return new Point(
+            this.endPoint.x + ((this.endPoint.x - this.startPoint.x) / 2),
+            this.endPoint.y + ((this.endPoint.y - this.startPoint.y) / 2)
+        )
+    }
+
     isPointInside(point) {
         // if the point lies in between the x boundary and the y boundary
         return (

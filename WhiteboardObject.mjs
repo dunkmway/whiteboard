@@ -86,6 +86,30 @@ export default class WhiteboardObject {
         throw('The isLineIntersecting method must be implemented for the child class ' + this.type)
     }
 
+    translate(x, y) {
+        this.origin.x += x;
+        this.origin.y += y;
+        this.update();
+    }
+
+    translateTo(x, y) {
+        this.origin.x = x;
+        this.origin.y = y;
+        this.update();
+    }
+
+    rotate(rad) {
+        this.rotation += rad;
+        this.rotation = this.rotation - Math.floor(this.rotation / (2 * Math.PI)) * (2 * Math.PI);
+        this.update();
+    }
+
+    rotateTo(rad) {
+        rad = rad - Math.floor(rad / (2 * Math.PI)) * (2 * Math.PI);
+        this.rotation = rad;
+        this.update();
+    }
+
     pointIsInBoundingBox(point) {
         return this.boundingBox.isPointInside(point);
     }
