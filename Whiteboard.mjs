@@ -56,9 +56,12 @@ export default class Whiteboard {
 
         this.debug = false;
 
-        this.clipboard = null;
+        this.clipboard = [];
 
         this.elements = new Map();
+        this.hoveredElements = new Set();
+        this.selectedElements = new Set();
+
         this.canvas = canvas;
         this.isDarkMode = true;
         this.toolbar = document.createElement('div');
@@ -367,7 +370,7 @@ export default class Whiteboard {
     handleMouseUp(e) {
         switch (this.mode) {
             case CanvasMode.Select:
-                this.selectUp();
+                this.selectUp(e);
                 break
             case CanvasMode.Pen:
             case CanvasMode.Line:
@@ -390,7 +393,7 @@ export default class Whiteboard {
         this.mouseCurrentPosition = this.getMousePosition(e);
         switch (this.mode) {
             case CanvasMode.Select:
-                this.selectMove(e);
+                this.selectMove();
                 break
             case CanvasMode.Pen:
                 this.pathMove();
@@ -694,37 +697,65 @@ export default class Whiteboard {
     }
 
     selectDown(e) {
-        // unselect everything
-        this.elements.forEach(element => element.selected = false);
-        const mousePos = this.getMousePosition(e)
-        this.currentObject = new BoundingBox(mousePos.x, mousePos.y, mousePos.x, mousePos.y);
+        this.detectHovering();
+        if (this.hoveredElements.size > 0) {
+            this.canvas.style.cursor = 'grabbing';
+        }
     }
-    selectUp() {
-        // check if any elements intersect with the selection box and select them
-        this.elements.forEach(element => {
-            if (element.boxIsInBoundingBox(this.currentObject)) {
-                element.selected = true;
-                console.log(element);
+    selectUp(e) {
+        this.selectedElements.clear();
+        
+        for (const [id, element] of this.elements) {
+            const isInside = element.boundingBox.isPointInside(this.mouseCurrentPosition);
+            
+            if (isInside) {
+                this.canvas.style.cursor = 'grab';
             }
-        })
-        this.currentObject = null;
+    
+            if (e.ctrlKey) {
+                element.selected = element.selected || isInside;
+            } else {
+                element.selected = isInside;
+            }
+    
+            if (element.selected) this.selectedElements.add(id);
+        };
+    
         this.redraw();
     }
-    selectMove(e) {
-        if (this.isMouseDown) {
-            const mousePos = this.getMousePosition(e)
-            this.currentObject.update(this.currentObject.startPoint.x, this.currentObject.startPoint.y, mousePos.x, mousePos.y);
+    selectMove() {
+        this.detectHovering();
 
-            // redraw to prepare for new selection box
+        // handle mouse down
+        if (this.isMouseDown && this.hoveredElements.size > 0) {
+            // if the mouse is down and there are elements that are being hovered
+            // start to move the object
+            this.selectedElements.forEach(id => {
+                const current = this.elements.get(id);
+                const deltaX = this.mouseCurrentPosition.x - this.mousePreviousPosition.x;
+                const deltaY = this.mouseCurrentPosition.y - this.mousePreviousPosition.y;
+                current.translate(deltaX, deltaY);
+            })
+
+            this.canvas.style.cursor = 'grabbing';
             this.redraw();
+        }
+    }
 
-            // manually draw in the box
-            this.context.beginPath();
-            this.context.strokeStyle = this.selectBoxColor;
-            this.context.lineWidth = 2;
-            this.context.setLineDash([4,2]);
-            this.context.rect(this.currentObject.startPoint.x, this.currentObject.startPoint.y, this.currentObject.getWidth(), this.currentObject.getHeight());
-            this.context.stroke();
+    detectHovering() {
+        // handle hover detection
+        this.hoveredElements.clear();
+        for (let [id, element] of this.elements) {
+            if (element.selected && element.boundingBox.isPointInside(this.mouseCurrentPosition)) {
+                this.hoveredElements.add(id);
+            }
+        }
+
+        // change cursor
+        if (this.hoveredElements.size > 0) {
+            this.canvas.style.cursor = 'grab';
+        } else {
+            this.canvas.style.cursor = 'default';
         }
     }
 
