@@ -13,6 +13,10 @@ export default class Point {
         return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2))
     }
 
+    static angle(p1, p2) {
+        return Math.atan2(p2.y - p1.y, p2.x - p1.x);
+    }
+
     // Given three collinear points p, q, r, the function checks if
     // point q lies on line segment 'pr'
     static onSegment(p, q, r)

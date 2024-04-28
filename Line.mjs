@@ -32,6 +32,20 @@ export default class Line extends WhiteboardObject {
         this.updateBoundingBox();
     }
 
+    translate(x, y) {
+        this.origin.x += x;
+        this.origin.y += y;
+
+        this.endPoint.x += x;
+        this.endPoint.y += y;
+
+        this.update();
+    }
+
+    translateTo(x, y) {
+        this.translate(x - this.origin.x, y - this.origin.y);
+    }
+
     updateBoundingBox() {
         this.boundingBox.update(this.origin.x, this.origin.y, this.endPoint.x, this.endPoint.y);
     }

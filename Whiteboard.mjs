@@ -647,7 +647,7 @@ export default class Whiteboard {
     }
     lineMove() {
         if (this.isMouseDown) {
-            this.currentObject.endPoint = mousePos;
+            this.currentObject.endPoint = this.mouseCurrentPosition;
             this.currentObject.update();
             this.redraw();
         }

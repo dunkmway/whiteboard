@@ -1,5 +1,6 @@
 import GeometricLine from "./GeometricLine.mjs";
 import WhiteboardObject from "./WhiteboardObject.mjs";
+import Line from "./Line.mjs";
 
 export default class Path extends WhiteboardObject {
     constructor(options) {
@@ -79,6 +80,16 @@ export default class Path extends WhiteboardObject {
         })
 
         this.boundingBox.update(left, top, right, bottom);
+    }
+
+    translate(x, y) {
+        this.segments.forEach(segment => segment.translate(x, y));
+        this.update();
+    }
+
+    translateTo(x, y) {
+        this.segments.forEach(segment => segment.translateTo(x, y));
+        this.update();
     }
 
     /**

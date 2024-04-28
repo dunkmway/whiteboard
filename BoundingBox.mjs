@@ -41,7 +41,7 @@ export default class BoundingBox {
      * @returns 
      */
     lineIntersects(line) {
-        // if any on of the endpoints of the line are in region 5 we are intersecting with the bounding box
+        // if any on of the endpoints of the line are in the box we are intersecting with the bounding box
         if (this.isPointInside(line.startPoint) || this.isPointInside(line.endPoint)) {
             return true;
         }
