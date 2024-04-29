@@ -18,6 +18,10 @@ export default class Box extends WhiteboardObject {
         this.update();
     }
 
+    clone() {
+        return new Box(super.clone());
+    }
+
     draw(context) {
         super.draw(context);
         context.rect(this.origin.x, this.origin.y, this.width, this.height);

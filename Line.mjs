@@ -21,6 +21,12 @@ export default class Line extends WhiteboardObject {
         this.update();
     }
 
+    clone() {
+        const newObject = super.clone();
+        newObject.endPoint = new Point(this.endPoint.x, this.endPoint.y);
+        return new Line(newObject);
+    }
+
     draw(context) {
         super.draw(context);
         context.moveTo(this.origin.x, this.origin.y);

@@ -20,6 +20,12 @@ export default class Path extends WhiteboardObject {
         this.update();
     }
 
+    clone() {
+        const newObject = super.clone();
+        newObject.segments = newObject.segments.map(segment => segment.clone());
+        return new Path(newObject);
+    }
+
     draw(context) {
         super.draw(context);
         this.segments.forEach(segment => {

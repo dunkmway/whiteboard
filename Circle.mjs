@@ -17,6 +17,10 @@ export default class Circle extends WhiteboardObject {
         this.update();
     }
 
+    clone() {
+        return new Circle(super.clone());
+    }
+
     draw(context) {
         super.draw(context);
         context.arc(this.origin.x, this.origin.y, Math.abs(this.radius), 0, 2 * Math.PI);

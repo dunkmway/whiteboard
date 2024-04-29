@@ -17,6 +17,10 @@ export default class Ring extends WhiteboardObject {
         this.update();
     }
 
+    clone() {
+        return new Ring(super.clone());
+    }
+
     draw(context) {
         super.draw(context);
         context.arc(this.origin.x, this.origin.y, this.radius, 0, 2 * Math.PI);

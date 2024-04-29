@@ -219,27 +219,6 @@ export default class Whiteboard {
         }
     }
 
-    convertObjectToWhiteboardObject(object) {
-        switch (object.type) {
-            case 'path':
-                return new Path(object);
-            case 'line':
-                return new Line(object);
-            case 'rectangle':
-                return new Rectangle(object);
-            case 'box':
-                return new Box(object);
-            case 'circle':
-                return new Circle(object);
-            case 'ring':
-                return new Ring(object);
-            case 'polygon':
-                return new Polygon(object);
-            default:
-                return null;
-        }
-    }
-
     setMode(mode) {
         // unselect everything if we are leaving the select mode
         if (this.mode = CanvasMode.Select && mode != CanvasMode.Select) {
@@ -266,11 +245,11 @@ export default class Whiteboard {
         element.draw(this.context);
     }
 
-    remove(element) {
+    remove(id) {
         // remove the element from the elements object
-        this.elements.delete(element.id)
-        // redraw the canvas
-        this.redraw();
+        this.elements.delete(id);
+        this.selectedElements.delete(id);
+        this.hoveredElements.delete(id);
     }
 
     redraw() {
@@ -486,8 +465,7 @@ export default class Whiteboard {
                         this.clipboard = Array.from(this.selectedElements)
                         .map(id => {
                             const element = this.elements.get(id);
-                            this.selectedElements.delete(id);
-                            this.elements.delete(id);
+                            this.remove(id);
                             return element;
                         });
                         this.redraw();
@@ -496,38 +474,31 @@ export default class Whiteboard {
                 break;
             case 'v':
                 if (e.ctrlKey) {
-                    //FIXME: not working, the object bug out
-                    ////////////////////////////////////////
-                    // this.clipboard = this.clipboard.map(element => {
-                    //     element = this.convertObjectToWhiteboardObject(element);
-                    //     // change the id
-                    //     element.id = crypto.randomUUID();
-                    //     if (element.segments) {
-                    //         element.segments.forEach(segment => segment.id = crypto.randomUUID());
-                    //     }
-                    //     // change the origin (and endpoint) to the current mouse position
-                    //     if (element.endPoint) {
-                    //         element.endPoint = new Point(this.mouseCurrentPosition.x + (element.endPoint.x - element.origin.x), this.mouseCurrentPosition.y + (element.endPoint.y - element.origin.y));
-                    //     }
-                    //     element.origin = this.mouseCurrentPosition;
-                    //     // remove the selected state
-                    //     element.selected = false;
-                    //     // update the element
-                    //     element.update();
-                    //     // add the new element to the whiteboard
-                    //     this.add(element);
-                    //     // copy the element for the clipboard (to paste again a copy)
-                    //     return element;
-                    // });
+                    this.clipboard.forEach(element => {
+                        // clone the element
+                        const newElement = element.clone();
+
+                        // change the origin (and endpoint) to the current mouse position
+                        if (newElement.endPoint) {
+                            newElement.endPoint = new Point(this.mouseCurrentPosition.x + (newElement.endPoint.x - newElement.origin.x), this.mouseCurrentPosition.y + (newElement.endPoint.y - newElement.origin.y));
+                        }
+                        newElement.origin = new Point(this.mouseCurrentPosition.x, this.mouseCurrentPosition.y);
+                        // remove the selected state
+                        newElement.selected = false;
+
+                        // update the new element
+                        newElement.update();
+
+                        // add the newElement to the whiteboard
+                        this.add(newElement);
+                    });
                 }
                 break;
             case 'Delete':
             case 'Backspace':
                 if (this.mode == CanvasMode.Select) {
-                    this.elements.forEach(element => {
-                        if (element.selected) {
-                            this.elements.delete(element.id);
-                        }
+                    this.selectedElements.forEach(id => {
+                        this.remove(id);
                     })
                     this.redraw();
                 }
@@ -538,10 +509,8 @@ export default class Whiteboard {
 
                 } else {
                     if (this.mode == CanvasMode.Select) {
-                        this.elements.forEach(element => {
-                            if (element.selected) {
-                                element.translate(0, -1);
-                            }
+                        this.selectedElements.forEach(id => {
+                            this.elements.get(id).translate(0, -1);
                         })
                         this.redraw();
                     }
@@ -551,20 +520,16 @@ export default class Whiteboard {
                 e.preventDefault();
                 if (e.ctrlKey) {
                     if (this.mode == CanvasMode.Select) {
-                        this.elements.forEach(element => {
-                            if (element.selected) {
-                                element.rotate(2 * Math.PI / 360)
-                                element.update();
-                            }
+                        this.selectedElements.forEach(id => {
+                            this.elements.get(id).rotate(2 * Math.PI / 360)
+                            this.elements.get(id).update();
                         })
                         this.redraw();
                     }
                 } else {
                     if (this.mode == CanvasMode.Select) {
-                        this.elements.forEach(element => {
-                            if (element.selected) {
-                                element.translate(1, 0);
-                            }
+                        this.selectedElements.forEach(id => {
+                            this.elements.get(id).translate(1, 0);
                         })
                         this.redraw();
                     }
@@ -576,10 +541,8 @@ export default class Whiteboard {
 
                 } else {
                     if (this.mode == CanvasMode.Select) {
-                        this.elements.forEach(element => {
-                            if (element.selected) {
-                                element.translate(0, 1);
-                            }
+                        this.selectedElements.forEach(id => {
+                            this.elements.get(id).translate(0, 1);
                         })
                         this.redraw();
                     }
@@ -589,19 +552,15 @@ export default class Whiteboard {
                 e.preventDefault();
                 if (e.ctrlKey) {
                     if (this.mode == CanvasMode.Select) {
-                        this.elements.forEach(element => {
-                            if (element.selected) {
-                                element.rotate(-2 * Math.PI / 360)
-                            }
+                        this.selectedElements.forEach(id => {
+                            this.elements.get(id).rotate(-2 * Math.PI / 360)
                         })
                         this.redraw();
                     }
                 } else {
                     if (this.mode == CanvasMode.Select) {
-                        this.elements.forEach(element => {
-                            if (element.selected) {
-                                element.translate(-1, 0);
-                            }
+                        this.selectedElements.forEach(id => {
+                            this.elements.get(id).translate(-1, 0);
                         })
                         this.redraw();
                     }
@@ -735,22 +694,27 @@ export default class Whiteboard {
             }
     
             if (e.ctrlKey) {
-                element.selected = element.selected || isInside;
+                // leave the just dragged states alone
+                // if we are inside then we toggle the selected state
+                // else we leave the state alone
+                element.selected = (element.selected && this.isDragging) ? true : (isInside ? !element.selected : element.selected);
             } else {
-                element.selected = (element.selected && this.isDragging) || isInside;
+                // leave the just dragged states alone
+                // toggle the inside select
+                // turn everything else off
+                element.selected = (element.selected && this.isDragging) ? true : (isInside ? !element.selected : false);
             }
     
             if (element.selected) {
                 this.selectedElements.add(id);
-                console.log(element);
             }
         };
+
+        console.log(Array.from(this.selectedElements).map(id => this.elements.get(id)));
     
         this.redraw();
     }
     selectMove() {
-        this.detectHovering();
-
         // handle mouse down
         if (this.isMouseDown && this.hoveredElements.size > 0) {
             // if the mouse is down and there are elements that are being hovered
@@ -761,12 +725,13 @@ export default class Whiteboard {
                 const deltaY = this.mouseCurrentPosition.y - this.mousePreviousPosition.y;
                 current.translate(deltaX, deltaY);
             })
-
+            
             this.canvas.style.cursor = 'grabbing';
             this.redraw();
         }
+        this.detectHovering();
     }
-
+    
     detectHovering() {
         // handle hover detection
         this.hoveredElements.clear();
@@ -802,11 +767,11 @@ export default class Whiteboard {
                 if (element.lineIsInBoundingBox(eraserLine)) {
                     // now check only the bounding intersection for their more complex intersection function
                     if (element.isLineIntersecting(eraserLine)) {
-                        this.elements.delete(element.id);
-                        this.redraw()
+                        this.remove(element.id);
                     }
                 }
             })
+            this.redraw()
         }
     }
 

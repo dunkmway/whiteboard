@@ -24,6 +24,12 @@ export default class Polygon extends WhiteboardObject {
         this.update();
     }
 
+    clone() {
+        const newObject = super.clone();
+        newObject.segments = newObject.segments.map(segment => segment.clone());
+        return new Polygon(newObject);
+    }
+
     draw(context) {
         super.draw(context);
         this.segments.forEach(segment => {

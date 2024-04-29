@@ -86,6 +86,14 @@ export default class WhiteboardObject {
         throw('The isLineIntersecting method must be implemented for the child class ' + this.type)
     }
 
+    clone() {
+        const newObject = {...this};
+        newObject.id = crypto.randomUUID();
+        newObject.origin = new Point(this.origin.x, this.origin.y);
+        newObject.boundingBox = new BoundingBox(this.boundingBox.startPoint.x, this.boundingBox.startPoint.y, this.boundingBox.endPoint.x, this.boundingBox.endPoint.y);
+        return new WhiteboardObject(newObject);
+    }
+
     translate(x, y) {
         this.origin.x += x;
         this.origin.y += y;
