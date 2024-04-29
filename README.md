@@ -13,6 +13,7 @@ Just having fun playing around with the HTML canvas. Maybe I'll use this in Lyrn
   - [x] Polygon
   - [ ] Text Box
   - [ ] Bezier Curve
+  - [x] Group objects (select multiple objects and make one object from them) (also ungroup items)
 - [x] Select
   - [x] Single Select
   - [x] Multi Select (ctrl + click)
@@ -42,3 +43,6 @@ Just having fun playing around with the HTML canvas. Maybe I'll use this in Lyrn
   - [x] Basic
   - [ ] Better looking toolbar (has defaults)
   - [ ] Fully customizable toolbar (advanced)
+- [x] Meta Controls
+  - [x] Copy the whiteboard to JSON
+  - [x] Load the whiteboard from JSON

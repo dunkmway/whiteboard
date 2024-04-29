@@ -32,6 +32,8 @@ import Path from "./Path.mjs";
 import Rectangle from "./Rectangle.mjs";
 import Ring from "./Ring.mjs";
 import Polygon from "./Polygon.mjs";
+import Group from "./Group.mjs";
+
 import Point from "./Point.mjs";
 import GeometricLine from "./GeometricLine.mjs";
 
@@ -213,6 +215,9 @@ export default class Whiteboard {
                     break;
                 case 'polygon':
                     this.add(new Polygon(current));
+                    break;
+                case 'group':
+                    this.add(new Group(current));
                     break;
                 default:
             }
@@ -445,8 +450,51 @@ export default class Whiteboard {
             case 'r':
                 this.setMode(CanvasMode.Ring);
                 break;
+            case 'G':
+                if (e.ctrlKey && this.mode == CanvasMode.Select) {
+                    // ungroup any selected groups
+                    e.preventDefault();
+                    this.selectedElements.forEach(id => {
+                        const element = this.elements.get(id);
+                        if (element.type == 'group') {
+                            // unpack the group
+                            element.members.forEach(member => {
+                                this.add(member);
+                                member.selected = true;
+                                this.selectedElements.add(member.id);
+                            })
+                            this.remove(id);
+                        }
+                    })
+                    this.redraw();
+                }
+                break;
             case 'g':
-                this.setMode(CanvasMode.Polygon);
+                if (e.ctrlKey && this.mode == CanvasMode.Select) {
+                    e.preventDefault();
+                    // we group the selected objects and then select the group
+                    const newGroup = new Group({
+                        selected: true,
+                        selectBoxColor: this.selectBoxColor,
+                        boundingBoxColor: this.boundingBoxColor,
+                        showBoundingBox: this.debug,
+                        members: Array.from(this.selectedElements).map(id => {
+                            const element = this.elements.get(id);
+                            // unselect the grouped objects
+                            element.selected = false;
+                            // remove them from the whiteboard
+                            this.remove(id);
+                            // pass them to the members to be recreated by the group
+                            return element;
+                        })
+                    })
+                    this.add(newGroup);
+                    this.selectedElements.add(newGroup.id);
+                    this.redraw();
+
+                } else {
+                    this.setMode(CanvasMode.Polygon);
+                }
                 break;
             case 'c':
                 if (e.ctrlKey) {
