@@ -1,3 +1,5 @@
+# HTML Canvas Whiteboard
+
 Just having fun playing around with the HTML canvas. Maybe I'll use this in Lyrn but for right now just playing around.
 
 ## Features
@@ -35,6 +37,7 @@ Just having fun playing around with the HTML canvas. Maybe I'll use this in Lyrn
   - [x] Stroke Color
   - [x] Fill Color
   - [ ] Edit styles (Edit the styles by selecting the object after it is created)
+  - [ ] Make a general way to fill in a shape (i.e. fill in a polygon with triangles)
 - [ ] Toolbar
   - [x] Basic
   - [ ] Better looking toolbar (has defaults)
