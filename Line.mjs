@@ -11,8 +11,9 @@ export default class Line extends WhiteboardObject {
             options.endPoint = new Point(options.endPoint.x, options.endPoint.y);
         }
         const defaults = {
-            endPoint: new Point(this.origin.x + 50, this.origin.y),
-            type: 'line'
+            endPoint: new Point(this.origin.x + this.minSize, this.origin.y),
+            type: 'line',
+            isSegment: false
         }
 
         Object.assign(defaults, options);
@@ -35,6 +36,17 @@ export default class Line extends WhiteboardObject {
     }
 
     update() {
+        // if this is a segment line, ignore the min sizes
+        if (!this.isSegment) {
+            const geoLine = new GeometricLine(this.origin, this.endPoint);
+            const length = geoLine.getLength();
+            if (length < this.minSize) {
+                const scalingFactor = this.minSize / length;
+                const slope = geoLine.getSlope();
+                this.endPoint.x = this.origin.x + (slope.denominator * scalingFactor);
+                this.endPoint.y = this.origin.y + (slope.numerator * scalingFactor);
+            }
+        }
         this.updateBoundingBox();
     }
 

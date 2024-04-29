@@ -7,8 +7,8 @@ export default class Box extends WhiteboardObject {
         super(options);
 
         const defaults = {
-            width: 100,
-            height: 100,
+            width: this.minSize,
+            height: this.minSize,
             type: 'box'
         }
 
@@ -29,6 +29,8 @@ export default class Box extends WhiteboardObject {
     }
 
     update() {
+        if (Math.abs(this.width) < this.minSize) this.width = this.minSize * (Math.sign(this.width) == 0 ? 1 : Math.sign(this.width));
+        if (Math.abs(this.height) < this.minSize) this.height = this.minSize * (Math.sign(this.height) == 0 ? 1 : Math.sign(this.height));
         this.updateBoundingBox();
     }
 

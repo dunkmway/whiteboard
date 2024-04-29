@@ -13,7 +13,7 @@ export default class Polygon extends WhiteboardObject {
 
         const defaults = {
             numSides: 5,
-            radius: 50,
+            radius: this.minSize / 2,
             type: 'polygon',
             segments: [],
         }
@@ -38,6 +38,7 @@ export default class Polygon extends WhiteboardObject {
     }
 
     update() {
+        if (this.radius < this.minSize / 2) this.radius = this.minSize / 2;
         this.updateSegments();
         this.updateBoundingBox();
     }
@@ -109,7 +110,8 @@ export default class Polygon extends WhiteboardObject {
                 lineWidth: this.lineWidth,
                 lineCap: this.lineCap,
                 lineJoin: this.lineJoin,
-                lineDash: this.lineDash
+                lineDash: this.lineDash,
+                isSegment: true
             }))
         }
     }

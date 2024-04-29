@@ -627,7 +627,8 @@ export default class Whiteboard {
                     lineWidth: this.currentObject.lineWidth,
                     lineCap: this.currentObject.lineCap,
                     lineJoin: this.currentObject.lineJoin,
-                    lineDash: this.currentObject.lineDash
+                    lineDash: this.currentObject.lineDash,
+                    isSegment: true
                 }
             ))
         }

@@ -7,7 +7,7 @@ export default class Circle extends WhiteboardObject {
         super(options);
 
         const defaults = {
-            radius: 50,
+            radius: this.minSize / 2,
             type: 'circle'
         }
 
@@ -28,6 +28,7 @@ export default class Circle extends WhiteboardObject {
     }
     
     update() {
+        if (this.radius < this.minSize / 2) this.radius = this.minSize / 2;
         this.updateBoundingBox();
     }
 

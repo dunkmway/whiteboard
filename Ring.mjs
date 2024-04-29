@@ -7,7 +7,7 @@ export default class Ring extends WhiteboardObject {
         super(options);
 
         const defaults = {
-            radius: 50,
+            radius: this.minSize / 2,
             type: 'ring'
         }
 
@@ -28,6 +28,7 @@ export default class Ring extends WhiteboardObject {
     }
 
     update() {
+        if (this.radius < this.minSize / 2) this.radius = this.minSize / 2;
         this.updateBoundingBox();
     }
 

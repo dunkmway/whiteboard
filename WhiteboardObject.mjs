@@ -26,7 +26,8 @@ export default class WhiteboardObject {
             showBoundingBox: false,
             selected: false,
             boundingBoxColor: "#ff0000",
-            selectBoxColor: "#00ff00"
+            selectBoxColor: "#00ff00",
+            minSize: 50
         }
 
         Object.assign(defaults, options);

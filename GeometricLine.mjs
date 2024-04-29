@@ -12,7 +12,7 @@ export default class GeometricLine {
     }
 
     getSlope() {
-        return new Fraction(this.startPoint.y - this.endPoint.y, this.startPoint.x - this.endPoint.x);
+        return new Fraction(this.endPoint.y - this.startPoint.y, this.endPoint.x - this.startPoint.x);
     }
 
     getLength() {
