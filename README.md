@@ -1,1 +1,41 @@
-Just having fun playing around with the HTMl canvas. Maybe I'll use this in Lyrn but for right now just playing around.
+Just having fun playing around with the HTML canvas. Maybe I'll use this in Lyrn but for right now just playing around.
+
+## Features
+- [x] Whiteboard objects
+  - [x] Path
+  - [x] Line
+  - [x] Rectangle
+  - [x] Box
+  - [x] Circle
+  - [x] Ring
+  - [x] Polygon
+  - [ ] Text Box
+  - [ ] Bezier Curve
+- [x] Select
+  - [x] Single Select
+  - [x] Multi Select (ctrl + click)
+- [ ] Transformations
+  - [x] Translate (keyboard)
+  - [x] Translate (mouse)
+  - [x] Rotate (keyboard) (partial)
+  - [ ] Rotate (mouse)
+- [x] Minimum size on objects
+- [ ] Eraser
+  - [x] Object Eraser
+  - [ ] Pixel Eraser
+- [ ] Keyboard Shortcuts
+  - [x] Copy
+  - [x] Cut
+  - [x] Paste
+  - [ ] Undo
+  - [ ] Redo
+  - [x] Delete
+- [ ] Styling
+  - [x] Line Width
+  - [x] Stroke Color
+  - [x] Fill Color
+  - [ ] Edit styles (Edit the styles by selecting the object after it is created)
+- [ ] Toolbar
+  - [x] Basic
+  - [ ] Better looking toolbar (has defaults)
+  - [ ] Fully customizable toolbar (advanced)
