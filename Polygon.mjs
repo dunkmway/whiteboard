@@ -94,7 +94,7 @@ export default class Polygon extends WhiteboardObject {
         for (let i = 0; i < this.numSides; i++) {
             // get the start angle and end angle reletive to the origin of the segment
             const interiorAngle = (2 * Math.PI / this.numSides);
-            const startAngle = i * interiorAngle + this.rotation - (Math.PI / 2);
+            const startAngle = i * interiorAngle + this.rotation;
             const endAngle = startAngle + interiorAngle;
 
             // get the exact location of the start and end points

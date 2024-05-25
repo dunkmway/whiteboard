@@ -25,6 +25,7 @@
 *
 */
 
+// MARK: Imports
 import Box from "./Box.mjs";
 import Circle from "./Circle.mjs";
 import Line from "./Line.mjs";
@@ -53,6 +54,7 @@ class CanvasMode {
     }
 }
 
+// MARK: Class
 export default class Whiteboard {
     constructor(canvas) {
         if (!canvas.getContext) {
@@ -245,6 +247,7 @@ export default class Whiteboard {
         return new Point(event.clientX - rect.left, event.clientY - rect.top);
     }
 
+    // MARK: Drawing
     add(element) {
         this.elements.set(element.id, element)
         element.draw(this.context);
@@ -317,6 +320,7 @@ export default class Whiteboard {
         }
     }
 
+    // MARK: MouseDown
     handleMouseDown(e) {
         const objectDefaults = {
             origin: this.getMousePosition(e),
@@ -365,6 +369,7 @@ export default class Whiteboard {
         this.isDragging = false;
     }
 
+    // MARK: MouseUp
     handleMouseUp(e) {
         switch (this.mode) {
             case CanvasMode.Select:
@@ -388,6 +393,7 @@ export default class Whiteboard {
         this.isDragging = false;
     }
 
+    // MARK: MouseMove
     handleMouseMove(e) {
         this.mouseCurrentPosition = this.getMousePosition(e);
         switch (this.mode) {
@@ -424,6 +430,7 @@ export default class Whiteboard {
         this.isDragging = this.isMouseDown;
     }
 
+    // MARK: KeyDown
     handleKeyDown(e) {
         switch (e.key) {
             case 's':
@@ -618,6 +625,7 @@ export default class Whiteboard {
         }
     }
 
+    // MARK: Query
     queryAtPoint(point) {
         let foundElements = [];
         this.elements.forEach(element => {
@@ -663,6 +671,7 @@ export default class Whiteboard {
         this.redraw();
     }
 
+    // MARK: Move
     pathMove() {
         if (this.isMouseDown) {
             this.currentObject.drawNextSegment(
@@ -721,6 +730,7 @@ export default class Whiteboard {
     polygonMove() {
         if (this.isMouseDown) {
             this.currentObject.radius = Point.distance(this.currentObject.origin, this.mouseCurrentPosition);
+            this.currentObject.rotation = Point.angle(this.currentObject.origin, this.mouseCurrentPosition);
             this.currentObject.update();
             this.redraw();
         }
