@@ -28,18 +28,12 @@ export default class BoundingBox {
     }
 
     isPointInside(point) {
-        // if the point lies in between the x boundary and the y boundary
-        return (
-            Math.abs(this.startPoint.x - point.x) + Math.abs(this.endPoint.x - point.x) == Math.abs(this.startPoint.x - this.endPoint.x) &&
-            Math.abs(this.startPoint.y - point.y) + Math.abs(this.endPoint.y - point.y) == Math.abs(this.startPoint.y - this.endPoint.y)
-        )
+        const xInRange = this.startPoint.x <= point.x && point.x <= this.endPoint.x || this.endPoint.x <= point.x && point.x <= this.startPoint.x;
+        const yInRange = this.startPoint.y <= point.y && point.y <= this.endPoint.y || this.endPoint.y <= point.y && point.y <= this.startPoint.y;
+
+        return xInRange && yInRange;
     }
 
-    /**
-     * 
-     * @param {GeometricLine} line 
-     * @returns 
-     */
     lineIntersects(line) {
         // if any on of the endpoints of the line are in the box we are intersecting with the bounding box
         if (this.isPointInside(line.startPoint) || this.isPointInside(line.endPoint)) {
