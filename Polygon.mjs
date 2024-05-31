@@ -117,8 +117,28 @@ export default class Polygon extends WhiteboardObject {
     }
 
     isPointInside(point) {
-        console.error('FIXME: implement point is inside polygon')
-        return;
+        let inside = false;
+        const x = point.x;
+        const y = point.y;
+    
+        for (let i = 0; i < this.segments.length; i++) {
+            const segment = this.segments[i];
+            const xi = segment.endPoint.x;
+            const yi = segment.endPoint.y;
+            const xj = segment.startPoint.x;
+            const yj = segment.startPoint.y;
+    
+            // image a horizontal line at the point extending to the right forever
+            // if this line intersects the segments an odd number of times, the point is inside
+            // the first check is if the line is within the y bounds
+            // and the second check is if the horizontal line intersects the segment on the right of the point
+            const intersect = ((yi > y) != (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+            if (intersect) {
+                inside = !inside;
+            }
+        }
+    
+        return inside;
     }
 
     /**
